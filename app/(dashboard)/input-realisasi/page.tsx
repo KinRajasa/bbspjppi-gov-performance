@@ -66,7 +66,7 @@ export default function InputRealisasiExcelPage() {
                 </select>
               </div>
 
-              {/* Pilih Periode (Baru Ditambahkan) */}
+              {/* Pilih Periode Laporan */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">Periode Laporan <span className="text-rose-500">*</span></label>
                 <select 
@@ -77,16 +77,16 @@ export default function InputRealisasiExcelPage() {
                   <option value="" disabled>-- Pilih Bulan --</option>
                   <option value="jan">Januari</option>
                   <option value="feb">Februari</option>
-                  <option value="mar">Maret (Triwulan I)</option>
+                  <option value="mar" className="font-bold text-blue-600">Maret (Akhir Triwulan I)</option>
                   <option value="apr">April</option>
                   <option value="mei">Mei</option>
-                  <option value="jun">Juni (Triwulan II)</option>
+                  <option value="jun" className="font-bold text-blue-600">Juni (Akhir Triwulan II)</option>
                   <option value="jul">Juli</option>
                   <option value="ags">Agustus</option>
-                  <option value="sep">September (Triwulan III)</option>
+                  <option value="sep" className="font-bold text-blue-600">September (Akhir Triwulan III)</option>
                   <option value="okt">Oktober</option>
                   <option value="nov">November</option>
-                  <option value="des">Desember (Triwulan IV)</option>
+                  <option value="des" className="font-bold text-blue-600">Desember (Akhir Triwulan IV)</option>
                 </select>
               </div>
 
