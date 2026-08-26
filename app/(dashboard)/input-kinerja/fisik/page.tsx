@@ -50,13 +50,28 @@ export default function InputKinerjaPage() {
                 className="w-full bg-slate-50 border border-slate-200 text-slate-500 text-sm rounded-md px-3 py-2.5 outline-none cursor-not-allowed"
               />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-2">Periode Pelaporan</label>
-              <select className="w-full border border-slate-300 rounded-md px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 bg-white">
-                <option>Maret / Triwulan I</option>
-                <option>Juni / Triwulan II</option>
-              </select>
-            </div>
+            {/* Periode Pelaporan (Disamakan jadi 12 Bulan) */}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">Periode Pelaporan</label>
+            <select 
+              className="w-full border border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-700 outline-none focus:border-blue-500 bg-white cursor-pointer"
+              defaultValue=""
+            >
+              <option value="" disabled>-- Pilih Bulan --</option>
+              <option value="jan">Januari</option>
+              <option value="feb">Februari</option>
+              <option value="mar" className="font-bold text-blue-600">Maret (Akhir Triwulan I)</option>
+              <option value="apr">April</option>
+              <option value="mei">Mei</option>
+              <option value="jun" className="font-bold text-blue-600">Juni (Akhir Triwulan II)</option>
+              <option value="jul">Juli</option>
+              <option value="ags">Agustus</option>
+              <option value="sep" className="font-bold text-blue-600">September (Akhir Triwulan III)</option>
+              <option value="okt">Oktober</option>
+              <option value="nov">November</option>
+              <option value="des" className="font-bold text-blue-600">Desember (Akhir Triwulan IV)</option>
+            </select>
+          </div>
           </div>
 
           {/* Baris 2: Rencana vs Realisasi Kegiatan */}
