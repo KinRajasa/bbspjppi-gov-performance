@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react'; // 1. Tambahkan import useState
 
 export default function DashboardLayout({
   children,
@@ -9,6 +10,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  
+  // 2. Tambahkan state untuk mengontrol buka-tutup sub-menu Perjanjian Kinerja
+  const [isPerjakinOpen, setIsPerjakinOpen] = useState(false);
 
   const isActive = (path: string) => {
     if (path === '/' && pathname === '/') return true;
@@ -39,16 +43,64 @@ export default function DashboardLayout({
               Dashboard Eksekutif
             </Link>
             
-            <Link 
-              href="/perjanjian-kinerja" 
-              className={`pl-5 py-3 text-sm font-medium rounded-r transition-colors border-l-4 ${
-                isActive('/perjanjian-kinerja') 
-                  ? 'border-blue-500 bg-blue-600/20 text-blue-400' 
-                  : 'border-transparent hover:bg-slate-800'
-              }`}
-            >
-              Perjanjian Kinerja
-            </Link>
+            {/* ========================================= */}
+            {/* 3. MENU PERJANJIAN KINERJA DENGAN SUB-MENU*/}
+            {/* ========================================= */}
+            <div className="flex flex-col">
+              <button 
+                onClick={() => setIsPerjakinOpen(!isPerjakinOpen)}
+                className={`w-full flex justify-between items-center pr-4 pl-5 py-3 text-sm font-medium rounded-r transition-colors border-l-4 ${
+                  isActive('/perjanjian-kinerja') 
+                    ? 'border-blue-500 bg-blue-600/20 text-blue-400' 
+                    : 'border-transparent hover:bg-slate-800'
+                }`}
+              >
+                <span>Perjanjian Kinerja</span>
+                {/* Ikon panah berubah sesuai state */}
+                <span className="text-[10px] ml-2">{isPerjakinOpen ? '▼' : '▶'}</span>
+              </button>
+
+              {/* Daftar Sub-menu (Muncul jika isPerjakinOpen true) */}
+              {isPerjakinOpen && (
+                <div className="flex flex-col mt-1 mb-2 relative">
+                  {/* Garis vertikal tipis penanda sub-menu */}
+                  <div className="absolute left-8 top-0 bottom-0 w-px bg-slate-700/50"></div>
+                  
+                  <Link 
+                    href="/perjanjian-kinerja" 
+                    className={`pl-12 py-2 text-sm font-medium transition-colors ${
+                      pathname === '/perjanjian-kinerja'
+                        ? 'text-blue-400'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Master Data IKU
+                  </Link>
+                  <Link 
+                    href="/perjanjian-kinerja/rencana-aksi" 
+                    className={`pl-12 py-2 text-sm font-medium transition-colors ${
+                      pathname === '/perjanjian-kinerja/rencana-aksi'
+                        ? 'text-blue-400'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Rencana Aksi
+                  </Link>
+
+                  <Link 
+                  href="/perjanjian-kinerja/integrasi-sheet" 
+                  className={`pl-12 py-2 text-sm font-medium transition-colors ${
+                    pathname === '/integrasi-sheet'
+                      ? 'text-blue-400'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Integrasi Sheet
+                </Link>
+                </div>
+              )}
+            </div>
+            {/* ========================================= */}
 
             <Link 
               href="/kelola-anggaran" 
@@ -97,24 +149,8 @@ export default function DashboardLayout({
           </nav>
         </div>
 
-
-        {/* ========================================== */}
-        {/* MENU BAWAH (Pengaturan & Keluar)             */}
-        {/* ========================================== */}
         <div className="mt-auto pt-6 border-t border-slate-700/50 flex flex-col gap-2">
           
-          {/* Menu Pengaturan (DISEMBUNYIKAN SEMENTARA) */}
-          {/* 
-          <Link 
-            href="/pengaturan" 
-            className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition font-medium text-sm"
-          >
-            <span className="material-symbols-outlined text-[20px]">settings</span>
-            Pengaturan
-          </Link>
-          */}
-
-          {/* Menu Keluar */}
           <Link 
             href="/login" 
             className="flex items-center gap-3 px-4 py-3 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition font-medium text-sm"
