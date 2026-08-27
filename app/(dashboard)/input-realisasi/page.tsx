@@ -4,6 +4,26 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function InputRealisasiSheetPage() {
+  // 1. DATA DUMMY KONSISTEN (Menggunakan optgroup)
+  const sasarans = [
+    {
+      id: 1,
+      namaSasaran: 'Meningkatnya kualitas dan kuantitas layanan jasa industri',
+      indikators: [
+        { id: '1.1', nama: 'Indeks Kepuasan Masyarakat (IKM)', target: 3.70, satuan: 'Indeks', pic: 'Ketua Tim Kerja PJI' },
+        { id: '1.2', nama: 'Jumlah perusahaan industri yang memanfaatkan layanan', target: 990, satuan: 'Perusahaan', pic: 'Ketua Tim Kerja PJI' },
+        { id: '1.3', nama: 'Persentase pelayanan tepat waktu (SLA)', target: 90.00, satuan: 'Persen', pic: 'Ketua Tim Kerja PJI' }
+      ]
+    },
+    {
+      id: 2,
+      namaSasaran: 'Terwujudnya layanan tata kelola pemerintahan yang baik',
+      indikators: [
+        { id: '2.1', nama: 'Indeks peningkatan PNBP', target: 3.00, satuan: 'Indeks', pic: 'Kapokja Keuangan dan BMN' }
+      ]
+    }
+  ];
+
   const [indikator, setIndikator] = useState('');
   const [periode, setPeriode] = useState('');
   // State: 'idle' | 'fetching' | 'success'
@@ -43,7 +63,8 @@ export default function InputRealisasiSheetPage() {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Pilih Indikator */}
+            
+            {/* Pilih Indikator (Telah di-update menggunakan Optgroup) */}
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Pilih Indikator Kinerja <span className="text-rose-500">*</span></label>
               <select 
@@ -52,8 +73,15 @@ export default function InputRealisasiSheetPage() {
                 onChange={(e) => setIndikator(e.target.value)}
               >
                 <option value="">-- Pilih Indikator --</option>
-                <option value="sk1">SK.1 - Indeks Kepuasan Masyarakat (IKM)</option>
-                <option value="sk2">SK.2 - Persentase SLA Layanan Jasa</option>
+                {sasarans.map((sasaran, index) => (
+                  <optgroup key={sasaran.id} label={`Sasaran ${index + 1}: ${sasaran.namaSasaran}`} className="font-bold text-slate-500">
+                    {sasaran.indikators.map(ind => (
+                      <option key={ind.id} value={ind.id} className="font-normal text-black">
+                        {ind.id} - {ind.nama}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
 
@@ -85,7 +113,7 @@ export default function InputRealisasiSheetPage() {
 
         {/* TAHAP 2: HASIL TARIKAN DATA & BUKTI DUKUNG */}
         {syncStatus === 'success' && (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8 animation-fade-in">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8 animation-fade-in flex flex-col">
             <h3 className="font-bold text-slate-700 text-lg flex items-center gap-2 border-b border-slate-100 pb-4 mb-6">
               Tahap 2: Hasil Realisasi & Bukti Dukung
               <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-1 rounded uppercase tracking-wider flex items-center gap-1">
@@ -110,36 +138,24 @@ export default function InputRealisasiSheetPage() {
             </div>
 
             {/* Upload Bukti Dukung Fisik */}
-            <div className="mb-8">
+            <div className="mb-4">
               <label className="block text-sm font-bold text-slate-700 mb-2">Unggah Dokumen Bukti Dukung <span className="text-rose-500">*</span></label>
-              <div className="w-full border-2 border-dashed border-slate-300 rounded-xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 hover:border-slate-400 transition cursor-pointer">
-                <span className="material-symbols-outlined text-[28px] text-slate-400 mb-2">picture_as_pdf</span>
-                <p className="text-sm font-bold text-slate-600">Klik untuk mengunggah file</p>
+              <div className="w-full border-2 border-dashed border-slate-300 rounded-xl p-6 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 hover:border-blue-400 transition cursor-pointer group">
+                <span className="material-symbols-outlined text-[28px] text-slate-400 mb-2 group-hover:text-blue-500 transition">picture_as_pdf</span>
+                <p className="text-sm font-bold text-slate-600 group-hover:text-blue-600 transition">Klik untuk mengunggah file</p>
                 <p className="text-xs text-slate-400">Mendukung format PDF, JPG, atau PNG (Maks 5MB)</p>
               </div>
             </div>
 
-            {/* Input Evaluasi manual DISEMBUNYIKAN KARENA SUDAH ADA DI RENCANA AKSI */}
-            {/* 
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Penjelasan / Kendala Pelaksanaan</label>
-                <textarea 
-                  rows={3}
-                  placeholder="Tuliskan evaluasi capaian atau kendala yang dihadapi..."
-                  className="w-full border border-slate-300 rounded-lg p-4 text-sm outline-none focus:border-blue-500 bg-white"
-                ></textarea>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Tindak Lanjut / Perbaikan</label>
-                <textarea 
-                  rows={2}
-                  placeholder="Tuliskan rencana perbaikan ke depan..."
-                  className="w-full border border-slate-300 rounded-lg p-4 text-sm outline-none focus:border-blue-500 bg-white"
-                ></textarea>
-              </div>
+            {/* BOTTOM ACTIONS (BARU) */}
+            <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-slate-100">
+              <button className="px-6 py-2.5 rounded-md text-sm font-bold text-slate-600 border border-slate-300 bg-white hover:bg-slate-50 transition shadow-sm">
+                Batal
+              </button>
+              <button className="px-8 py-2.5 rounded-md text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 flex items-center gap-2 transition shadow-sm">
+                <span className="material-symbols-outlined text-[18px]">save</span> Simpan Data Realisasi
+              </button>
             </div>
-            */}
 
           </div>
         )}

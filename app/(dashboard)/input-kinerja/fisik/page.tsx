@@ -4,11 +4,45 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 export default function InputKinerjaPage() {
-  // State untuk membuat input persentase fisik interaktif
-  const targetFisik = 25;
+  // 1. DATA DUMMY: Konsisten dengan Master Data & Rencana Aksi
+  const sasarans = [
+    {
+      id: 1,
+      namaSasaran: 'Meningkatnya kualitas dan kuantitas layanan jasa industri',
+      indikators: [
+        { id: '1.1', nama: 'Indeks Kepuasan Masyarakat (IKM)', target: 3.70, satuan: 'Indeks', pic: 'Ketua Tim Kerja PJI' },
+        { id: '1.2', nama: 'Jumlah perusahaan industri yang memanfaatkan layanan', target: 990, satuan: 'Perusahaan', pic: 'Ketua Tim Kerja PJI' },
+        { id: '1.3', nama: 'Persentase pelayanan tepat waktu (SLA)', target: 90.00, satuan: 'Persen', pic: 'Ketua Tim Kerja PJI' }
+      ]
+    },
+    {
+      id: 2,
+      namaSasaran: 'Terwujudnya layanan tata kelola pemerintahan yang baik',
+      indikators: [
+        { id: '2.1', nama: 'Indeks peningkatan PNBP', target: 3.00, satuan: 'Indeks', pic: 'Kapokja Keuangan dan BMN' }
+      ]
+    }
+  ];
+
+  // 2. STATE LOGIC UTAMA
+  const [selectedIndikatorId, setSelectedIndikatorId] = useState('1.1');
+  const [selectedPeriode, setSelectedPeriode] = useState('mar');
   const [realisasiFisik, setRealisasiFisik] = useState<number | string>(25);
 
-  // Menentukan status berdasarkan angka realisasi
+  // 3. AUTO-FILL LOGIC: Mencari detail PIC dan Target
+  const selectedIndikator = sasarans.flatMap(s => s.indikators).find(ind => ind.id === selectedIndikatorId) || null;
+
+  // 4. HELPER: Menentukan nama Triwulan & Target Fisik berdasarkan Bulan
+  const getTriwulanInfo = (bulan: string) => {
+    if (['jan', 'feb', 'mar'].includes(bulan)) return { nama: 'Triwulan I', target: 25 };
+    if (['apr', 'mei', 'jun'].includes(bulan)) return { nama: 'Triwulan II', target: 50 };
+    if (['jul', 'ags', 'sep'].includes(bulan)) return { nama: 'Triwulan III', target: 75 };
+    if (['okt', 'nov', 'des'].includes(bulan)) return { nama: 'Triwulan IV', target: 100 };
+    return { nama: 'Triwulan I', target: 25 };
+  };
+
+  const triwulanAktif = getTriwulanInfo(selectedPeriode);
+  const targetFisik = triwulanAktif.target;
   const isTargetTerpenuhi = Number(realisasiFisik) >= targetFisik;
 
   return (
@@ -35,53 +69,73 @@ export default function InputKinerjaPage() {
 
           {/* Baris 1: Filter/Info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            
+            {/* DROPDOWN DINAMIS (OPTGROUP) */}
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-2">Pilih Indikator Kinerja</label>
-              <select className="w-full border border-slate-300 rounded-md px-3 py-2.5 text-sm text-slate-700 outline-none bg-slate-50">
-                <option>SK.1 - Indeks Kepuasan Masyarakat</option>
+              <select 
+                value={selectedIndikatorId}
+                onChange={(e) => setSelectedIndikatorId(e.target.value)}
+                className="w-full border border-slate-300 rounded-md px-3 py-2.5 text-sm text-slate-700 outline-none bg-white cursor-pointer focus:border-blue-500"
+              >
+                {sasarans.map((sasaran, index) => (
+                  <optgroup key={sasaran.id} label={`Sasaran ${index + 1}: ${sasaran.namaSasaran}`} className="font-bold text-slate-500">
+                    {sasaran.indikators.map(ind => (
+                      <option key={ind.id} value={ind.id} className="font-normal text-black">
+                        {ind.id} - {ind.nama}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
+            
+            {/* PIC AUTO-FILL */}
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-2">Penanggung Jawab</label>
               <input 
                 type="text" 
                 disabled 
-                value="Ketua Tim Kerja Pengembangan Jasa Industri" 
-                className="w-full bg-slate-50 border border-slate-200 text-slate-500 text-sm rounded-md px-3 py-2.5 outline-none cursor-not-allowed"
+                value={selectedIndikator ? selectedIndikator.pic : ''} 
+                className="w-full bg-slate-50 border border-slate-200 text-slate-500 font-medium text-sm rounded-md px-3 py-2.5 outline-none cursor-not-allowed"
               />
             </div>
-            {/* Periode Pelaporan (Disamakan jadi 12 Bulan) */}
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Periode Pelaporan</label>
-            <select 
-              className="w-full border border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-700 outline-none focus:border-blue-500 bg-white cursor-pointer"
-              defaultValue=""
-            >
-              <option value="" disabled>-- Pilih Bulan --</option>
-              <option value="jan">Januari</option>
-              <option value="feb">Februari</option>
-              <option value="mar" className="font-bold text-blue-600">Maret (Akhir Triwulan I)</option>
-              <option value="apr">April</option>
-              <option value="mei">Mei</option>
-              <option value="jun" className="font-bold text-blue-600">Juni (Akhir Triwulan II)</option>
-              <option value="jul">Juli</option>
-              <option value="ags">Agustus</option>
-              <option value="sep" className="font-bold text-blue-600">September (Akhir Triwulan III)</option>
-              <option value="okt">Oktober</option>
-              <option value="nov">November</option>
-              <option value="des" className="font-bold text-blue-600">Desember (Akhir Triwulan IV)</option>
-            </select>
-          </div>
+            
+            {/* PERIODE PELAPORAN */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Periode Pelaporan</label>
+              <select 
+                value={selectedPeriode}
+                onChange={(e) => setSelectedPeriode(e.target.value)}
+                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 bg-white cursor-pointer"
+              >
+                <option value="" disabled>-- Pilih Bulan --</option>
+                <option value="jan">Januari</option>
+                <option value="feb">Februari</option>
+                <option value="mar" className="font-bold text-blue-600">Maret (Akhir Triwulan I)</option>
+                <option value="apr">April</option>
+                <option value="mei">Mei</option>
+                <option value="jun" className="font-bold text-blue-600">Juni (Akhir Triwulan II)</option>
+                <option value="jul">Juli</option>
+                <option value="ags">Agustus</option>
+                <option value="sep" className="font-bold text-blue-600">September (Akhir Triwulan III)</option>
+                <option value="okt">Oktober</option>
+                <option value="nov">November</option>
+                <option value="des" className="font-bold text-blue-600">Desember (Akhir Triwulan IV)</option>
+              </select>
+            </div>
           </div>
 
           {/* Baris 2: Rencana vs Realisasi Kegiatan */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="flex flex-col">
-              <label className="block text-xs font-bold text-slate-600 mb-2">Rencana Kegiatan Triwulan I</label>
+              <label className="block text-xs font-bold text-slate-600 mb-2">
+                Rencana Kegiatan {triwulanAktif.nama}
+              </label>
               <textarea 
                 rows={6}
                 disabled
-                className="w-full bg-slate-50 border border-slate-200 rounded-md p-4 text-sm text-slate-600 outline-none cursor-not-allowed custom-scrollbar resize-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-md p-4 text-sm text-slate-600 outline-none cursor-not-allowed custom-scrollbar resize-none leading-relaxed"
                 value="1. Penanganan dan pemantauan komplain pelanggan TW I.&#10;2. Penyebaran kuesioner kepuasan pelanggan TW I.&#10;3. Evaluasi dan penghitungan statistisi penilaian IKM TW I."
               />
             </div>
@@ -91,7 +145,7 @@ export default function InputKinerjaPage() {
               </label>
               <textarea 
                 rows={6}
-                className="w-full bg-white border border-slate-300 rounded-md p-4 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 custom-scrollbar resize-none"
+                className="w-full bg-white border border-slate-300 rounded-md p-4 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 custom-scrollbar resize-none leading-relaxed"
                 defaultValue="1. Penyebaran kuesioner kepada 118 pelanggan and kembali kepada BBSPJPPI sejumlah 22 responden.&#10;Hasil analisa IKM bulan Januari berpedoman pada PermenPANRB NO 14/2017 adalah sebesar 3.72."
               />
             </div>
@@ -146,21 +200,25 @@ export default function InputKinerjaPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             
-            {/* BOX KIRI: Target */}
+            {/* BOX KIRI: Target (Otomatis menyesuaikan bulan yang dipilih) */}
             <div className="bg-slate-50 rounded-xl border border-slate-200 p-6 flex flex-col items-center justify-center">
-              <span className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Target % Fisik</span>
+              <span className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                Target Fisik ({triwulanAktif.nama})
+              </span>
               <div className="text-4xl font-black text-slate-800">{targetFisik}%</div>
             </div>
 
             {/* BOX KANAN: Realisasi Input */}
             <div className="flex flex-col">
-               <span className="text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider text-center md:text-left">Realisasi % Fisik</span>
+               <span className="text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider text-center md:text-left">
+                 Realisasi % Fisik
+               </span>
                <div className="flex-1 border border-slate-300 rounded-xl overflow-hidden flex items-stretch bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition shadow-sm">
                   <input 
                     type="number"
                     value={realisasiFisik}
                     onChange={(e) => setRealisasiFisik(e.target.value)}
-                    className="flex-1 text-center text-4xl font-black text-slate-800 outline-none p-4"
+                    className="flex-1 text-center text-4xl font-black text-slate-800 outline-none p-4 w-full"
                   />
                   <div className="bg-slate-50 border-l border-slate-200 px-6 flex items-center justify-center text-2xl font-bold text-slate-500">
                     %
@@ -183,7 +241,7 @@ export default function InputKinerjaPage() {
 
         {/* BOTTOM ACTIONS */}
         <div className="flex justify-end gap-4 pt-4">
-          <Link href="/" className="px-6 py-2.5 rounded-md text-sm font-bold text-slate-600 border border-slate-300 bg-white hover:bg-slate-50 transition shadow-sm flex items-center justify-center">
+          <Link href="/validasi-data" className="px-6 py-2.5 rounded-md text-sm font-bold text-slate-600 border border-slate-300 bg-white hover:bg-slate-50 transition shadow-sm flex items-center justify-center">
             Batal
           </Link>
           <button className="px-8 py-2.5 rounded-md text-sm font-bold text-white bg-[#0f172a] hover:bg-slate-800 flex items-center gap-2 transition shadow-sm">

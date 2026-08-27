@@ -3,13 +3,14 @@
 import Link from 'next/link';
 
 export default function ValidasiDataPage() {
-  // Data antrean validasi (Bisa di-map agar rapi)
+  // DATA ANTREAN: Ditambahkan properti "sasaran" pada setiap baris
   const tableData = [
     { 
       id: 1, 
       waktu: '24 Okt 2026, 10:30', 
       pic: 'Siti Aminah', 
-      indikator: 'SK.1-IKM', 
+      sasaran: 'Meningkatnya kualitas layanan jasa industri',
+      indikator: '1.1 - Indeks Kepuasan Masyarakat (IKM)', 
       status: 'Menunggu Review', 
       statusType: 'warning',
       isRed: false
@@ -18,7 +19,8 @@ export default function ValidasiDataPage() {
       id: 2, 
       waktu: '23 Okt 2026, 15:45', 
       pic: 'Budi Santoso', 
-      indikator: 'SK.2-PNBP', 
+      sasaran: 'Terwujudnya layanan tata kelola pemerintahan',
+      indikator: '2.1 - Indeks peningkatan PNBP', 
       status: 'Revisi dari Kapokja', 
       statusType: 'danger',
       isRed: true,
@@ -28,7 +30,8 @@ export default function ValidasiDataPage() {
       id: 3, 
       waktu: '22 Okt 2026, 09:15', 
       pic: 'Andi Rahman', 
-      indikator: 'SK.3-SLA', 
+      sasaran: 'Meningkatnya kualitas layanan jasa industri',
+      indikator: '1.3 - Persentase pelayanan tepat waktu (SLA)', 
       status: 'Menunggu Review', 
       statusType: 'warning',
       isRed: false
@@ -143,25 +146,38 @@ export default function ValidasiDataPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {tableData.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/50 transition items-center">
-                    <td className={`px-6 py-5 font-medium ${row.isRed ? 'text-rose-600' : 'text-slate-600'}`}>
+                  <tr key={row.id} className="hover:bg-slate-50/50 transition">
+                    
+                    <td className={`px-6 py-5 align-top font-medium ${row.isRed ? 'text-rose-600' : 'text-slate-600'}`}>
                       {row.waktu}
                     </td>
-                    <td className="px-6 py-5 text-slate-800 font-medium">{row.pic}</td>
-                    <td className="px-6 py-5">
-                    <div className="text-slate-800 font-medium">{row.indikator}</div>
                     
-                    {/* Logika: Munculkan catatan dalam bentuk kotak penuh jika ada revisi */}
-                    {row.isRed && row.catatanRevisi && (
-                      <div className="mt-2 bg-rose-50/80 border border-rose-200 rounded-md p-2.5 max-w-[250px]">
-                        <p className="text-xs text-rose-700 leading-relaxed whitespace-normal">
-                          <span className="font-bold text-rose-800">Catatan: </span> 
-                          {row.catatanRevisi}
-                        </p>
+                    <td className="px-6 py-5 align-top text-slate-800 font-medium">
+                      {row.pic}
+                    </td>
+                    
+                    <td className="px-6 py-5 align-top">
+                      {/* Konteks Sasaran (Badge) */}
+                      <div className="mb-2">
+                        <span className="bg-slate-100 text-slate-500 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded border border-slate-200">
+                          {row.sasaran}
+                        </span>
                       </div>
-                    )}
-                  </td>
-                    <td className="px-6 py-5">
+                      
+                      <div className="text-slate-800 font-bold">{row.indikator}</div>
+                      
+                      {/* Catatan Revisi */}
+                      {row.isRed && row.catatanRevisi && (
+                        <div className="mt-3 bg-rose-50/80 border border-rose-200 rounded-md p-3 max-w-[300px]">
+                          <p className="text-xs text-rose-700 leading-relaxed whitespace-normal">
+                            <span className="font-bold text-rose-800">Catatan: </span> 
+                            {row.catatanRevisi}
+                          </p>
+                        </div>
+                      )}
+                    </td>
+                    
+                    <td className="px-6 py-5 align-top">
                       {row.statusType === 'warning' ? (
                         <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-200">
                           <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
@@ -174,25 +190,27 @@ export default function ValidasiDataPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-5 align-middle">
-                    <div className="flex justify-end">
-                    {row.statusType === 'warning' ? (
-                        <Link 
-                        href="/validasi-data/detail" 
-                        className="border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-1.5 rounded-md text-sm font-bold transition flex items-center justify-center gap-1 w-max"
-                        >
-                        Tinjau Laporan
-                        </Link>
-                    ) : (
-                        <Link 
-                        href="/validasi-data/detail" 
-                        className="bg-rose-600 text-white hover:bg-rose-700 px-4 py-1.5 rounded-md text-sm font-bold transition flex items-center justify-center gap-1 shadow-sm w-max"
-                        >
-                        Tinjau Laporan
-                        </Link>
-                    )}
-                    </div>
+                    
+                    <td className="px-6 py-5 align-top">
+                      <div className="flex justify-end">
+                        {row.statusType === 'warning' ? (
+                          <Link 
+                            href="/validasi-data/detail" 
+                            className="border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-1.5 rounded-md text-sm font-bold transition flex items-center justify-center gap-1 w-max"
+                          >
+                            Tinjau Laporan
+                          </Link>
+                        ) : (
+                          <Link 
+                            href="/validasi-data/detail" 
+                            className="bg-rose-600 text-white hover:bg-rose-700 px-4 py-1.5 rounded-md text-sm font-bold transition flex items-center justify-center gap-1 shadow-sm w-max"
+                          >
+                            Tinjau Laporan
+                          </Link>
+                        )}
+                      </div>
                     </td>
+                    
                   </tr>
                 ))}
               </tbody>

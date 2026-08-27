@@ -59,8 +59,12 @@ export default function DetailValidasiPage() {
               Menunggu Validasi Anda
             </div>
             
+            {/* 👇 KONTEKS SASARAN & PERUBAHAN KODE INDIKATOR 👇 */}
+            <p className="text-sm font-bold text-blue-600 mb-1">
+              Sasaran 1: Meningkatnya kualitas dan kuantitas layanan jasa industri
+            </p>
             <h3 className="text-3xl font-bold text-slate-800 leading-snug mb-4">
-              TJ.1 - Indeks Kepuasan Masyarakat (IKM)
+              1.1 - Indeks Kepuasan Masyarakat (IKM)
             </h3>
             
             <div className="flex flex-wrap items-center gap-6 text-sm text-slate-600 font-medium mb-8">

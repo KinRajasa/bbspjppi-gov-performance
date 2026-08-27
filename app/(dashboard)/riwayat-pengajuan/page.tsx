@@ -3,13 +3,14 @@
 import Link from 'next/link';
 
 export default function RiwayatPengajuanPage() {
-  // Data dummy untuk tabel Riwayat Pengajuan
+  // Data dummy diperbarui dengan penomoran 1.1 dan tambahan konteks 'sasaran'
   const tableData = [
     {
       id: 1,
       tanggal: '18 Ags 2026, 09:30',
       periode: 'Maret 2026',
-      indikator: 'SK.1-Indeks Kepuasan Masyarakat (IKM)',
+      sasaran: 'Meningkatnya kualitas dan kuantitas layanan jasa industri',
+      indikator: '1.1 - Indeks Kepuasan Masyarakat (IKM)',
       status: 'DISETUJUI KAPOKJA (SELESAI)',
       statusColor: 'emerald',
       icon: 'check_circle',
@@ -20,7 +21,8 @@ export default function RiwayatPengajuanPage() {
       id: 2,
       tanggal: '17 Ags 2026, 14:15',
       periode: 'Triwulan I',
-      indikator: 'SK.2-Indeks peningkatan PNBP',
+      sasaran: 'Terwujudnya layanan tata kelola pemerintahan yang baik',
+      indikator: '2.1 - Indeks peningkatan PNBP',
       status: 'REVISI DARI KATIM',
       statusColor: 'rose',
       icon: 'assignment_return',
@@ -32,7 +34,8 @@ export default function RiwayatPengajuanPage() {
       id: 3,
       tanggal: '18 Ags 2026, 11:00',
       periode: 'Juli 2026',
-      indikator: 'SK.3-Persentase SLA Layanan',
+      sasaran: 'Meningkatnya kualitas dan kuantitas layanan jasa industri',
+      indikator: '1.3 - Persentase pelayanan tepat waktu (SLA)',
       status: 'MENUNGGU REVIEW KATIM',
       statusColor: 'amber',
       icon: 'pending',
@@ -56,7 +59,6 @@ export default function RiwayatPengajuanPage() {
         {/* Profile Card PIC */}
         <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm">
           <div className="w-10 h-10 rounded-md bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm overflow-hidden">
-             {/* Icon placeholder untuk foto profil */}
             <span className="material-symbols-outlined text-[24px]">person</span>
           </div>
           <div className="flex flex-col text-right">
@@ -148,19 +150,26 @@ export default function RiwayatPengajuanPage() {
                 {tableData.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition">
                     
-                    {/* 1. KOLOM TANGGAL */}
-                    <td className="px-6 py-5 text-slate-600 font-medium whitespace-nowrap align-middle">
+                    {/* 1. KOLOM TANGGAL (Ubah align-middle jadi align-top) */}
+                    <td className="px-6 py-5 text-slate-600 font-medium whitespace-nowrap align-top">
                       {row.tanggal}
                     </td>
                     
                     {/* 2. KOLOM PERIODE & INDIKATOR */}
-                    <td className="px-6 py-5 align-middle">
+                    <td className="px-6 py-5 align-top">
+                      {/* Konteks Sasaran ditaruh di sini */}
+                      <div className="mb-2">
+                        <span className="bg-slate-100 text-slate-500 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded border border-slate-200">
+                          {row.sasaran}
+                        </span>
+                      </div>
+
                       <p className="font-bold text-slate-800 mb-1">{row.periode}</p>
                       <p className="text-slate-500">{row.indikator}</p>
                       
                       {/* Kotak Catatan Revisi */}
                       {row.statusColor === 'rose' && row.catatanRevisi && (
-                        <div className="mt-2 bg-rose-50/80 border border-rose-200 rounded-md p-2.5 max-w-[300px]">
+                        <div className="mt-3 bg-rose-50/80 border border-rose-200 rounded-md p-3 max-w-[300px]">
                           <p className="text-xs text-rose-700 leading-relaxed whitespace-normal">
                             <span className="font-bold text-rose-800">Catatan: </span> 
                             {row.catatanRevisi}
@@ -169,8 +178,8 @@ export default function RiwayatPengajuanPage() {
                       )}
                     </td>
 
-                    {/* 3. KOLOM STATUS PELACAKAN */}
-                    <td className="px-6 py-5 align-middle">
+                    {/* 3. KOLOM STATUS PELACAKAN (Ubah align-middle jadi align-top) */}
+                    <td className="px-6 py-5 align-top">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                         row.statusColor === 'emerald' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                         row.statusColor === 'rose' ? 'bg-rose-50 text-rose-600 border-rose-200' :
@@ -181,8 +190,8 @@ export default function RiwayatPengajuanPage() {
                       </span>
                     </td>
 
-                    {/* 4. KOLOM AKSI */}
-                    <td className="px-6 py-5 align-middle">
+                    {/* 4. KOLOM AKSI (Ubah align-middle jadi align-top) */}
+                    <td className="px-6 py-5 align-top">
                       <div className="flex justify-end">
                         {row.actionType === 'button' ? (
                           <Link 

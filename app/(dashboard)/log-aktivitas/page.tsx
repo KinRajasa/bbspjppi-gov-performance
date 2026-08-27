@@ -11,7 +11,7 @@ export default function LogAktivitasPage() {
       peran: 'Katim / Reviewer',
       jenisAktivitas: 'VALIDASI',
       badgeColor: 'emerald',
-      deskripsi: 'Menyetujui capaian indikator SK.1-SLA',
+      deskripsi: 'Menyetujui capaian indikator 1.3-SLA',
       modul: 'Validasi Data',
       refId: '#1042',
       ip: '192.168.1.45'
@@ -24,7 +24,7 @@ export default function LogAktivitasPage() {
       peran: 'Kapokja',
       jenisAktivitas: 'PENOLAKAN',
       badgeColor: 'rose',
-      deskripsi: 'Menolak capaian indikator SK.2 (Catatan: Bukti buram)',
+      deskripsi: 'Menolak capaian indikator 2.1-PNBP (Catatan: Bukti buram)',
       modul: 'Validasi Data',
       refId: '#1038',
       ip: '114.120.8.22'
@@ -37,7 +37,7 @@ export default function LogAktivitasPage() {
       peran: 'PIC Umum',
       jenisAktivitas: 'INPUT DATA',
       badgeColor: 'blue',
-      deskripsi: 'Mengunggah bukti dukung dan menyimpan realisasi SK.2',
+      deskripsi: 'Mengunggah bukti dukung dan menyimpan realisasi 2.1-PNBP',
       modul: 'Input Kinerja',
       refId: '',
       ip: '192.168.1.12'
