@@ -21,7 +21,8 @@ export default function ValidasiDataPage() {
       indikator: 'SK.2-PNBP', 
       status: 'Revisi dari Kapokja', 
       statusType: 'danger',
-      isRed: true
+      isRed: true,
+      catatanRevisi: 'Tolong perbaiki angka realisasi pada Triwulan III, sepertinya tidak sesuai dengan dokumen kuitansi.'
     },
     { 
       id: 3, 
@@ -147,7 +148,19 @@ export default function ValidasiDataPage() {
                       {row.waktu}
                     </td>
                     <td className="px-6 py-5 text-slate-800 font-medium">{row.pic}</td>
-                    <td className="px-6 py-5 text-slate-800">{row.indikator}</td>
+                    <td className="px-6 py-5">
+                    <div className="text-slate-800 font-medium">{row.indikator}</div>
+                    
+                    {/* Logika: Munculkan catatan dalam bentuk kotak penuh jika ada revisi */}
+                    {row.isRed && row.catatanRevisi && (
+                      <div className="mt-2 bg-rose-50/80 border border-rose-200 rounded-md p-2.5 max-w-[250px]">
+                        <p className="text-xs text-rose-700 leading-relaxed whitespace-normal">
+                          <span className="font-bold text-rose-800">Catatan: </span> 
+                          {row.catatanRevisi}
+                        </p>
+                      </div>
+                    )}
+                  </td>
                     <td className="px-6 py-5">
                       {row.statusType === 'warning' ? (
                         <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-200">
@@ -161,7 +174,8 @@ export default function ValidasiDataPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-5 flex justify-end">
+                    <td className="px-6 py-5 align-middle">
+                    <div className="flex justify-end">
                     {row.statusType === 'warning' ? (
                         <Link 
                         href="/validasi-data/detail" 
@@ -177,6 +191,7 @@ export default function ValidasiDataPage() {
                         Tinjau Laporan
                         </Link>
                     )}
+                    </div>
                     </td>
                   </tr>
                 ))}

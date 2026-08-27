@@ -33,6 +33,18 @@ export default function DetailValidasiPage() {
         </div>
       </header>
 
+      <div className="bg-rose-50/80 border border-rose-200 rounded-xl p-5 mb-6 flex gap-4 items-start shadow-sm">
+        <div className="bg-rose-100 p-2.5 rounded-full flex-shrink-0 mt-0.5">
+          <span className="material-symbols-outlined text-rose-600 text-[22px]">assignment_return</span>
+        </div>
+        <div>
+          <h4 className="font-bold text-rose-800 text-sm">Catatan Revisi Sebelumnya (23 Okt 2026, 15:45)</h4>
+          <p className="text-rose-700 text-sm mt-1.5 leading-relaxed italic">
+            "Tolong perbaiki angka realisasi pada Triwulan III, sepertinya tidak sesuai dengan dokumen kuitansi. Mohon dicek ulang kesesuaiannya dengan file Excel lampiran."
+          </p>
+        </div>
+      </div>
+
       {/* MAIN CONTENT GRID (2 KILOM) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         

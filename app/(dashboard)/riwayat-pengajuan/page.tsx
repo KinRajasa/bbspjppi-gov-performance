@@ -25,7 +25,8 @@ export default function RiwayatPengajuanPage() {
       statusColor: 'rose',
       icon: 'assignment_return',
       action: 'Perbaiki Data',
-      actionType: 'button'
+      actionType: 'button',
+      catatanRevisi: 'Tolong perbaiki angka realisasi pada Triwulan III, sepertinya tidak sesuai dengan dokumen kuitansi.'
     },
     {
       id: 3,
@@ -146,14 +147,30 @@ export default function RiwayatPengajuanPage() {
               <tbody className="divide-y divide-slate-100">
                 {tableData.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition">
-                    <td className="px-6 py-5 text-slate-600 font-medium whitespace-nowrap">
+                    
+                    {/* 1. KOLOM TANGGAL */}
+                    <td className="px-6 py-5 text-slate-600 font-medium whitespace-nowrap align-middle">
                       {row.tanggal}
                     </td>
-                    <td className="px-6 py-5">
+                    
+                    {/* 2. KOLOM PERIODE & INDIKATOR */}
+                    <td className="px-6 py-5 align-middle">
                       <p className="font-bold text-slate-800 mb-1">{row.periode}</p>
                       <p className="text-slate-500">{row.indikator}</p>
+                      
+                      {/* Kotak Catatan Revisi */}
+                      {row.statusColor === 'rose' && row.catatanRevisi && (
+                        <div className="mt-2 bg-rose-50/80 border border-rose-200 rounded-md p-2.5 max-w-[300px]">
+                          <p className="text-xs text-rose-700 leading-relaxed whitespace-normal">
+                            <span className="font-bold text-rose-800">Catatan: </span> 
+                            {row.catatanRevisi}
+                          </p>
+                        </div>
+                      )}
                     </td>
-                    <td className="px-6 py-5">
+
+                    {/* 3. KOLOM STATUS PELACAKAN */}
+                    <td className="px-6 py-5 align-middle">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                         row.statusColor === 'emerald' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                         row.statusColor === 'rose' ? 'bg-rose-50 text-rose-600 border-rose-200' :
@@ -163,25 +180,30 @@ export default function RiwayatPengajuanPage() {
                         {row.status}
                       </span>
                     </td>
-                    <td className="px-6 py-5 flex justify-end">
-                      {row.actionType === 'button' ? (
-                        <Link 
-                          href="/input-kinerja" 
-                          className="bg-[#0f62fe] text-white hover:bg-blue-700 px-5 py-2 rounded-md text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm w-max"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">edit_document</span>
+
+                    {/* 4. KOLOM AKSI */}
+                    <td className="px-6 py-5 align-middle">
+                      <div className="flex justify-end">
+                        {row.actionType === 'button' ? (
+                          <Link 
+                            href="/input-kinerja" 
+                            className="bg-[#0f62fe] text-white hover:bg-blue-700 px-5 py-2 rounded-md text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm w-max"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">edit_document</span>
+                            {row.action}
+                          </Link>
+                        ) : (
+                          <Link 
+                          href="/riwayat-pengajuan/detail" 
+                          className="text-blue-600 hover:text-blue-800 px-4 py-2 text-sm font-bold transition flex items-center justify-center gap-2 w-max"
+                          >
+                          <span className="material-symbols-outlined text-[18px]">visibility</span>
                           {row.action}
-                        </Link>
-                      ) : (
-                        <Link 
-                        href="/riwayat-pengajuan/detail" 
-                        className="text-blue-600 hover:text-blue-800 px-4 py-2 text-sm font-bold transition flex items-center justify-center gap-2 w-max"
-                        >
-                        <span className="material-symbols-outlined text-[18px]">visibility</span>
-                        {row.action}
-                        </Link>
-                      )}
+                          </Link>
+                        )}
+                      </div>
                     </td>
+                    
                   </tr>
                 ))}
               </tbody>
