@@ -40,7 +40,7 @@ export default function RiwayatPengajuanPage() {
       icon: 'assignment_return',
       action: 'Perbaiki Data',
       actionType: 'button',
-      catatanRevisi: 'Tolong perbaiki angka realisasi pada Triwulan III, sepertinya tidak sesuai dengan dokumen kuitansi.'
+      catatanRevisi: 'Tolong perbaiki angka realisasi pada Triwulan II, sepertinya tidak sesuai dengan dokumen kuitansi.'
     },
     {
       id: 3,

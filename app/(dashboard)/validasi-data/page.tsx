@@ -24,7 +24,7 @@ export default function ValidasiDataPage() {
       status: 'Revisi dari Kapokja', 
       statusType: 'danger',
       isRed: true,
-      catatanRevisi: 'Tolong perbaiki angka realisasi pada Triwulan III, sepertinya tidak sesuai dengan dokumen kuitansi.'
+      catatanRevisi: 'Tolong perbaiki angka realisasi pada Triwulan II, sepertinya tidak sesuai dengan dokumen kuitansi.'
     },
     { 
       id: 3, 

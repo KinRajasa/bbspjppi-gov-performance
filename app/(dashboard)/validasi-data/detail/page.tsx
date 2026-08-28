@@ -40,7 +40,7 @@ export default function DetailValidasiPage() {
         <div>
           <h4 className="font-bold text-rose-800 text-sm">Catatan Revisi Sebelumnya (23 Okt 2026, 15:45)</h4>
           <p className="text-rose-700 text-sm mt-1.5 leading-relaxed italic">
-            "Tolong perbaiki angka realisasi pada Triwulan III, sepertinya tidak sesuai dengan dokumen kuitansi. Mohon dicek ulang kesesuaiannya dengan file Excel lampiran."
+            "Tolong perbaiki angka realisasi pada Triwulan II, sepertinya tidak sesuai dengan dokumen kuitansi. Mohon dicek ulang kesesuaiannya dengan file Excel lampiran."
           </p>
         </div>
       </div>
