@@ -71,6 +71,7 @@ export default function DashboardUtama() {
     { id: 17, name: "Laporan Keuangan", pic: "Kapokja Keuangan dan BMN", target: "75.25", real: "75.25", cap: "100.0%", status: "MEMENUHI TARGET" },
     { id: 18, name: "Persentase Penggunaan Produk dalam Negeri", pic: "Tim Kerja Pengadaan", target: "81 Persen", real: "79.3 Persen", cap: "98.0%", status: "MEMENUHI TARGET" },
   ];
+
   return (
     <>
       <header className="flex justify-between items-start mb-8">
@@ -307,9 +308,6 @@ export default function DashboardUtama() {
                 <p className="text-sm text-slate-500 mt-1">Periode: S.d Juli 2026 | Menampilkan perbandingan target dan realisasi seluruh divisi.</p>
               </div>
               <div className="flex gap-4">
-                <button className="flex items-center gap-2 border border-blue-200 text-blue-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-50 transition">
-                  <span className="material-symbols-outlined text-[18px]">download</span> Unduh Excel
-                </button>
                 <button 
                   onClick={() => setShowDetailModal(false)}
                   className="w-10 h-10 flex items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
@@ -345,14 +343,26 @@ export default function DashboardUtama() {
 
             <div className="flex-1 overflow-auto bg-white p-8">
               <table className="w-full text-sm text-left">
+                {/* HEAD TABEL DITAMBAHKAN DI SINI */}
+                <thead className="bg-white border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[11px]">
+                  <tr>
+                    <th className="py-4 pr-4 font-bold w-12">No</th>
+                    <th className="py-4 pr-4 font-bold w-1/4">Indikator Kinerja</th>
+                    <th className="py-4 pr-4 font-bold w-1/5">Penanggung Jawab</th>
+                    <th className="py-4 pr-4 font-bold">Target</th>
+                    <th className="py-4 pr-4 font-bold">Realisasi</th>
+                    <th className="py-4 pr-4 font-bold">Capaian</th>
+                    <th className="py-4 font-bold text-right w-48">Status</th>
+                  </tr>
+                </thead>
                 <tbody className="divide-y divide-slate-100">
                   {detailDataIKU.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-5 pr-4 text-slate-500 font-medium align-top w-12">{item.id}</td>
-                      <td className={`py-5 pr-4 font-medium align-top w-1/4 ${item.status === 'TIDAK MEMENUHI' ? 'text-rose-600' : 'text-slate-800'}`}>
+                      <td className="py-5 pr-4 text-slate-500 font-medium align-top">{item.id}</td>
+                      <td className={`py-5 pr-4 font-medium align-top ${item.status === 'TIDAK MEMENUHI' ? 'text-rose-600' : 'text-slate-800'}`}>
                         {item.name}
                       </td>
-                      <td className="py-5 pr-4 text-slate-600 align-top w-1/5">{item.pic}</td>
+                      <td className="py-5 pr-4 text-slate-600 align-top">{item.pic}</td>
                       <td className="py-5 pr-4 text-slate-800 font-medium align-top">{item.target}</td>
                       <td className={`py-5 pr-4 font-medium align-top ${item.status === 'TIDAK MEMENUHI' ? 'text-rose-600' : 'text-slate-800'}`}>
                         {item.real}
@@ -360,7 +370,7 @@ export default function DashboardUtama() {
                       <td className={`py-5 pr-4 font-medium align-top ${item.status === 'TIDAK MEMENUHI' ? 'text-rose-600' : 'text-slate-800'}`}>
                         {item.cap}
                       </td>
-                      <td className="py-5 text-right align-top w-48">
+                      <td className="py-5 text-right align-top">
                         {item.status === 'MEMENUHI TARGET' ? (
                           <span className="inline-flex items-center gap-1.5 bg-emerald-100/60 text-emerald-700 px-3 py-1.5 rounded-md text-xs font-bold border border-emerald-200">
                             <span className="material-symbols-outlined text-[14px]">check_circle</span> {item.status}

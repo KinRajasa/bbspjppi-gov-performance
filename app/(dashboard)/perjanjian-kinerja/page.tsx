@@ -4,7 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 export default function PerjanjianKinerjaPage() {
-  // STATE BARU: Struktur bertingkat (Sasaran -> Indikator)
+  // STATE BARU: Untuk Timeline Pelaksanaan agar bisa diedit
+  const [timeline, setTimeline] = useState('01 Januari 2026 - 31 Desember 2026');
+
+  // STATE: Struktur bertingkat (Sasaran -> Indikator)
   const [sasarans, setSasarans] = useState([
     {
       id: 1,
@@ -130,9 +133,16 @@ export default function PerjanjianKinerjaPage() {
             <label className="block text-sm font-semibold text-slate-700 mb-2 print:text-black">
               Timeline Pelaksanaan
             </label>
-            <div className="flex items-center gap-3 w-full md:w-1/2 bg-slate-50 border border-slate-200 rounded-md px-4 py-2.5 print:border-none print:bg-transparent print:p-0">
+            {/* KOTAK INPUT TIMELINE YANG BISA DIEDIT */}
+            <div className="flex items-center gap-3 w-full md:w-1/2 bg-slate-50 border border-slate-200 rounded-md px-4 py-2.5 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition print:border-none print:bg-transparent print:p-0">
               <span className="material-symbols-outlined text-slate-400 print:hidden">calendar_month</span>
-              <span className="text-slate-700 font-medium print:text-black">01 Januari 2026 - 31 Desember 2026</span>
+              <input 
+                type="text"
+                value={timeline}
+                onChange={(e) => setTimeline(e.target.value)}
+                placeholder="Contoh: 01 Januari 2026 - 31 Desember 2026"
+                className="w-full bg-transparent text-slate-700 font-medium outline-none print:text-black print:p-0"
+              />
             </div>
           </div>
         </div>
