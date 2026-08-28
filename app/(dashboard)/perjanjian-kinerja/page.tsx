@@ -7,6 +7,28 @@ export default function PerjanjianKinerjaPage() {
   // STATE BARU: Untuk Timeline Pelaksanaan agar bisa diedit
   const [timeline, setTimeline] = useState('01 Januari 2026 - 31 Desember 2026');
 
+  // Daftar 18 Indikator Kinerja Utama (Sesuai Excel) untuk Dropdown
+  const pilihanIndikator = [
+    "Indeks Kepuasan Masyarakat (IKM)",
+    "Jumlah perusahaan industri yang memanfaatkan layanan",
+    "Persentase pelayanan tepat waktu (SLA)",
+    "Nilai Net Promoter Score (NPS)",
+    "Indeks peningkatan PNBP",
+    "Jumlah hasil layanan jasa industri",
+    "Nilai Revenue on Asset (RoA)",
+    "Rasio Pendapatan Operasional terhadap Biaya Operasional (POBO)",
+    "Indeks Profesionalitas ASN (IPASN)",
+    "Integrasi Data Sistem Informasi BSKJI",
+    "Tingkat Penerapan SPBE",
+    "Indeks Pelayanan Publik (IPP)",
+    "Tindak Lanjut Pengawasan",
+    "Nilai Kearsipan",
+    "Nilai SAKIP",
+    "Nilai IKPA",
+    "Laporan Keuangan",
+    "Persentase Penggunaan Produk dalam Negeri (PDN)"
+  ];
+
   // STATE: Struktur bertingkat (Sasaran -> Indikator)
   const [sasarans, setSasarans] = useState([
     {
@@ -202,13 +224,17 @@ export default function PerjanjianKinerjaPage() {
                           {indexSasaran + 1}.{indexInd + 1}
                         </td>
                         <td className="px-4 py-3 align-top print:border-black print:border">
-                          <textarea
-                            rows={2}
+                          {/* DIUBAH MENJADI DROPDOWN */}
+                          <select
                             value={ind.nama}
                             onChange={(e) => ubahIndikator(sasaran.id, ind.id, 'nama', e.target.value)}
-                            placeholder="Ketik indikator..."
-                            className="w-full border border-slate-200 hover:border-slate-300 focus:border-blue-500 rounded px-3 py-2 outline-none resize-none bg-white transition print:border-none print:p-0 print:resize-none print:bg-transparent"
-                          />
+                            className="w-full border border-slate-200 hover:border-slate-300 focus:border-blue-500 rounded px-3 py-2 outline-none bg-white cursor-pointer transition print:appearance-none print:border-none print:p-0 print:bg-transparent text-slate-700 font-medium"
+                          >
+                            <option value="" disabled>-- Pilih Indikator --</option>
+                            {pilihanIndikator.map((opt, i) => (
+                              <option key={i} value={opt}>{opt}</option>
+                            ))}
+                          </select>
                         </td>
                         <td className="px-4 py-3 align-top print:border-black print:border">
                           <select 
