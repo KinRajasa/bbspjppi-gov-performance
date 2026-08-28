@@ -70,7 +70,7 @@ export default function DetailValidasiPage() {
             <div className="flex flex-wrap items-center gap-6 text-sm text-slate-600 font-medium mb-8">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">person</span>
-                Budi Santoso (PIC Umum)
+                Dyah AF (PIC Umum)
               </div>
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">calendar_today</span>
@@ -88,9 +88,9 @@ export default function DetailValidasiPage() {
                 </div>
               </div>
               <div className="text-right flex flex-col items-end">
-                <p className="text-xs font-bold text-slate-500 mb-1">Realisasi</p>
+                <p className="text-xs font-bold text-slate-500 mb-1">Realisasi S.d Juni</p>
                 <div className="flex items-center gap-4">
-                  <span className="text-4xl font-black text-blue-600">3.69</span>
+                  <span className="text-4xl font-black text-blue-600">3.74</span>
                   <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-2.5 py-1.5 rounded flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-[16px]">trending_up</span> Melampaui Target
                   </div>
@@ -99,46 +99,77 @@ export default function DetailValidasiPage() {
             </div>
           </div>
 
-          {/* KARTU 2: Data Kualitatif */}
+          {/* KARTU 2: Data Kualitatif (Breakdown per Bulan) */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8">
             <div className="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
               <span className="material-symbols-outlined text-slate-800 text-[22px]">description</span>
-              <h3 className="font-bold text-slate-800 text-lg">Data Kualitatif</h3>
+              <h3 className="font-bold text-slate-800 text-lg">Data Kualitatif (Triwulan II)</h3>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Realisasi Kegiatan</h4>
-                <p className="text-sm text-slate-700 leading-relaxed">
-                  Penyebaran kuesioner kepada 500 responden layanan pengujian dan kalibrasi. Pengumpulan data dilakukan secara hybrid (online dan tatap muka) di ruang layanan terpadu BBSPJPPI.
-                </p>
-              </div>
+            <div className="space-y-8">
               
+              {/* Bagian 1: Breakdown Bulanan */}
               <div>
-                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Evaluasi Pelaksanaan</h4>
-                <p className="text-sm text-slate-700 leading-relaxed">
-                  Respon kurang proaktif pada minggu pertama penyebaran online. Diperlukan reminder aktif melalui WhatsApp gateway yang diintegrasikan dengan sistem antrean.
-                </p>
+                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-4">Rincian Realisasi Bulanan</h4>
+                <div className="space-y-3">
+                  
+                  {/* Bulan 1: April */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row gap-4">
+                    <div className="md:w-1/4 font-bold text-slate-700 text-sm flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div> April 2026
+                    </div>
+                    <div className="md:w-3/4 text-sm text-slate-600 leading-relaxed">
+                      Penyebaran kuesioner kepada 176 pelanggan dan kembali kepada BBSPJPPI sejumlah 15 responden. Hasil analisa IKM secara akumulasi bulan Januari-April adalah sebesar <strong>3,71</strong>.
+                    </div>
+                  </div>
+
+                  {/* Bulan 2: Mei */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row gap-4">
+                    <div className="md:w-1/4 font-bold text-slate-700 text-sm flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div> Mei 2026
+                    </div>
+                    <div className="md:w-3/4 text-sm text-slate-600 leading-relaxed">
+                      Penyebaran kuesioner kepada 202 pelanggan dan kembali kepada BBSPJPPI sejumlah 36 responden. Hasil analisa IKM secara akumulasi bulan Januari-Mei adalah sebesar <strong>3,73</strong>.
+                    </div>
+                  </div>
+
+                  {/* Bulan 3: Juni */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row gap-4">
+                    <div className="md:w-1/4 font-bold text-slate-700 text-sm flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div> Juni 2026
+                    </div>
+                    <div className="md:w-3/4 text-sm text-slate-600 leading-relaxed">
+                      Penyebaran kuesioner kepada 183 pelanggan dan kembali kepada BBSPJPPI sejumlah 35 responden. Hasil analisa IKM secara akumulasi bulan Januari-Juni adalah sebesar <strong>3,74</strong>.
+                    </div>
+                  </div>
+
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="bg-rose-50 border-l-4 border-rose-500 rounded-r-xl p-5">
-                  <div className="flex items-center gap-1.5 text-rose-600 font-bold text-sm mb-2">
-                    <span className="material-symbols-outlined text-[18px]">warning</span> Kendala
+              {/* Bagian 2: Evaluasi Triwulan (Kendala & Tindak Lanjut) */}
+              <div>
+                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-4">Evaluasi Keseluruhan (Triwulan II)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-rose-50 border-l-4 border-rose-500 rounded-r-xl p-5">
+                    <div className="flex items-center gap-1.5 text-rose-600 font-bold text-sm mb-2">
+                      <span className="material-symbols-outlined text-[18px]">warning</span> Kendala
+                    </div>
+                    <ul className="text-sm text-rose-700 leading-relaxed list-disc pl-4 space-y-1">
+                      <li>Masih sedikitnya jumlah pelanggan yang mengisi kuesioner via WA dan e-mail.</li>
+                      <li>Platform SINDII belum bisa digunakan sebagai sarana penyampaian kuesioner IKM.</li>
+                    </ul>
                   </div>
-                  <p className="text-sm text-rose-700 leading-relaxed">
-                    Partisipasi pelanggan industri kecil menengah (IKM) masih rendah because of keterbatasan literasi digital.
-                  </p>
-                </div>
-                <div className="bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl p-5">
-                  <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm mb-2">
-                    <span className="material-symbols-outlined text-[18px]">check_circle</span> Tindak Lanjut
+                  <div className="bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl p-5">
+                    <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm mb-2">
+                      <span className="material-symbols-outlined text-[18px]">check_circle</span> Tindak Lanjut
+                    </div>
+                    <p className="text-sm text-emerald-700 leading-relaxed">
+                      Melakukan strategi proaktif di loket penerimaan contoh dan blasting WA secara intens. Mengintegrasikan SINDII agar pelanggan wajib mengisi kuesioner sebelum mengunduh LHU.
+                    </p>
                   </div>
-                  <p className="text-sm text-emerald-700 leading-relaxed">
-                    Mengerahkan petugas customer service untuk pendampingan pengisian kuesioner secara langsung di loket.
-                  </p>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
