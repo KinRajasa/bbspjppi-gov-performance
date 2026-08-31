@@ -1,6 +1,7 @@
 'use client'; 
 
 import { useState } from 'react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DashboardUtama() {
   const [activeTab, setActiveTab] = useState<'perjakin' | 'rencana_aksi'>('perjakin');
@@ -70,6 +71,17 @@ export default function DashboardUtama() {
     { id: 16, name: "IKPA", pic: "Kapokja Keuangan dan BMN", target: "93.40", real: "85.92", cap: "92.0%", status: "MEMENUHI TARGET" },
     { id: 17, name: "Laporan Keuangan", pic: "Kapokja Keuangan dan BMN", target: "75.25", real: "75.25", cap: "100.0%", status: "MEMENUHI TARGET" },
     { id: 18, name: "Persentase Penggunaan Produk dalam Negeri", pic: "Tim Kerja Pengadaan", target: "81 Persen", real: "79.3 Persen", cap: "98.0%", status: "MEMENUHI TARGET" },
+  ];
+
+  // Data Setup untuk Recharts
+  const dataStatusKinerja = [
+    { name: 'Tercapai', value: 14, color: '#10b981' },
+    { name: 'Tidak Tercapai', value: 4, color: '#f43f5e' }
+  ];
+
+  const dataDeviasiStatus = [
+    { name: 'On Track', value: 15, color: '#10b981' },
+    { name: 'Delayed', value: 3, color: '#f43f5e' }
   ];
 
   return (
@@ -185,13 +197,40 @@ export default function DashboardUtama() {
 
               <div className="col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center">
                 <h3 className="font-bold text-slate-800 w-full border-b border-slate-100 pb-4 text-left">Proporsi Status Kinerja</h3>
-                <div className="relative w-56 h-56 rounded-full mt-10 shadow-inner flex items-center justify-center" style={{ background: 'conic-gradient(#10b981 0% 77.7%, #f43f5e 77.7% 100%)' }}>
-                  <div className="absolute w-40 h-40 bg-white rounded-full flex flex-col items-center justify-center shadow-md">
+                
+                {/* Recharts Donut Chart Tab 1 (FIXED) */}
+                <div className="relative w-full h-56 mt-6">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
                     <span className="text-4xl font-bold text-slate-800">18</span>
                     <span className="text-xs text-slate-500 mt-1">Total IKU</span>
                   </div>
+                  <div className="relative z-10 w-full h-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={dataStatusKinerja}
+                          innerRadius={70}
+                          outerRadius={95}
+                          paddingAngle={2}
+                          dataKey="value"
+                          stroke="none"
+                          animationDuration={1000}
+                        >
+                          {dataStatusKinerja.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value) => [`${value} IKU`]}
+                          contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                          wrapperStyle={{ zIndex: 100 }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
-                <div className="w-full mt-12 space-y-4">
+
+                <div className="w-full mt-8 space-y-4">
                   <div className="flex justify-between items-center px-2">
                     <div className="flex items-center gap-3">
                       <div className="w-3.5 h-3.5 rounded-full bg-emerald-500"></div>
@@ -214,7 +253,7 @@ export default function DashboardUtama() {
 
         ) : (
           
-          /* --- TAB 2: RENCANA AKSI (FULL 18 BARIS OTOMATIS) --- */
+          /* --- TAB 2: RENCANA AKSI --- */
           <div className="animation-fade-in">
              <div className="grid grid-cols-3 gap-6 mb-8">
               <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
@@ -239,7 +278,6 @@ export default function DashboardUtama() {
                 <h3 className="font-bold text-slate-800 border-b border-slate-100 pb-4 mb-4">Pemantauan Progres Fisik per Indikator (TW II)</h3>
                 <div className="max-h-[400px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
                   
-                  {/* Trik MAP ARRAY untuk memunculkan 18 progress bar otomatis! */}
                   {dataRencanaAksi.map((item) => (
                     <div 
                       key={item.id} 
@@ -265,13 +303,40 @@ export default function DashboardUtama() {
 
               <div className="col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center">
                 <h3 className="font-bold text-slate-800 w-full border-b border-slate-100 pb-4">Deviasi Status</h3>
-                <div className="relative w-52 h-52 rounded-full mt-10 shadow-inner flex items-center justify-center" style={{ background: 'conic-gradient(#10b981 0% 83.3%, #f43f5e 83.3% 100%)' }}>
-                  <div className="absolute w-36 h-36 bg-white rounded-full flex flex-col items-center justify-center shadow-md">
+                
+                {/* Recharts Donut Chart Tab 2 (FIXED) */}
+                <div className="relative w-full h-52 mt-6">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
                     <span className="text-4xl font-bold text-slate-800">51.4%</span>
                     <span className="text-xs text-slate-500 mt-1">Rata-Rata Fisik</span>
                   </div>
+                  <div className="relative z-10 w-full h-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={dataDeviasiStatus}
+                          innerRadius={65}
+                          outerRadius={90}
+                          paddingAngle={2}
+                          dataKey="value"
+                          stroke="none"
+                          animationDuration={1000}
+                        >
+                          {dataDeviasiStatus.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value) => [`${value} Kegiatan`]}
+                          contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                          wrapperStyle={{ zIndex: 100 }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
-                <div className="w-full mt-12 space-y-3">
+
+                <div className="w-full mt-8 space-y-3">
                   <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
                     <div className="flex items-center gap-3">
                       <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></div>
@@ -343,7 +408,6 @@ export default function DashboardUtama() {
 
             <div className="flex-1 overflow-auto bg-white p-8">
               <table className="w-full text-sm text-left">
-                {/* HEAD TABEL DITAMBAHKAN DI SINI */}
                 <thead className="bg-white border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[11px]">
                   <tr>
                     <th className="py-4 pr-4 font-bold w-12">No</th>
