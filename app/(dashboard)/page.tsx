@@ -79,6 +79,28 @@ export default function DashboardUtama() {
     { name: 'Tidak Tercapai', value: 4, color: '#f43f5e' }
   ];
 
+  // Indikator yang bermasalah ditaruh paling atas, sisanya menyusul di bawah
+  // agar saat scroll pun mata langsung tertuju ke hal yang perlu ditindaklanjuti.
+  const sortedDataIKU = [...dataIKU].sort((a, b) => {
+    const aBermasalah = a.color === 'bg-rose-500' ? 0 : 1;
+    const bBermasalah = b.color === 'bg-rose-500' ? 0 : 1;
+    return aBermasalah - bBermasalah;
+  });
+
+  // Daftar ringkas indikator yang tidak memenuhi target, dipakai di panel
+  // "Perlu Perhatian" supaya nama indikatornya langsung terlihat tanpa harus klik apa pun.
+  const indikatorPerluPerhatian = dataIKU.filter((iku) => iku.color === 'bg-rose-500');
+
+  // Rencana Aksi: sort yang delayed ke atas supaya langsung kelihatan
+  const sortedDataRencanaAksi = [...dataRencanaAksi].sort((a, b) => {
+    const aDelayed = a.color === 'bg-rose-500' ? 0 : 1;
+    const bDelayed = b.color === 'bg-rose-500' ? 0 : 1;
+    return aDelayed - bDelayed;
+  });
+
+  // Daftar kegiatan yang delayed, dipakai di panel "Perlu Percepatan"
+  const kegiatanDelayed = dataRencanaAksi.filter((item) => item.color === 'bg-rose-500');
+
   const dataDeviasiStatus = [
     { name: 'On Track', value: 15, color: '#10b981' },
     { name: 'Delayed', value: 3, color: '#f43f5e' }
@@ -182,35 +204,48 @@ export default function DashboardUtama() {
                   </button>
                 </div>
                 
-                <div className="max-h-[500px] overflow-y-auto pr-4 space-y-5 custom-scrollbar">
-                  {dataIKU.map((iku) => (
-                    <div key={iku.id} className="flex items-center justify-between text-sm">
-                      <div className="w-5/12 text-slate-700 text-right pr-4 truncate">{iku.name}</div>
-                      <div className="w-6/12 bg-slate-100 h-3 rounded-full overflow-hidden">
-                        <div className={`${iku.color} h-3 rounded-full`} style={{ width: iku.width }}></div>
+                <div className="max-h-[500px] overflow-y-auto pr-4 space-y-1 custom-scrollbar">
+                  {sortedDataIKU.map((iku) => {
+                    const bermasalah = iku.color === 'bg-rose-500';
+                    return (
+                      <div
+                        key={iku.id}
+                        className={`flex items-center justify-between text-sm py-2 px-2 rounded-lg ${
+                          bermasalah ? 'bg-rose-50/60 border-l-4 border-rose-400' : 'border-l-4 border-transparent'
+                        }`}
+                      >
+                        <div className={`w-5/12 text-right pr-4 truncate ${bermasalah ? 'text-rose-700 font-semibold' : 'text-slate-700'}`}>
+                          {iku.name}
+                        </div>
+                        <div className="w-6/12 bg-slate-100 h-3 rounded-full overflow-hidden">
+                          <div className={`${iku.color} h-3 rounded-full`} style={{ width: iku.width }}></div>
+                        </div>
+                        <div className={`w-1/12 text-right font-medium ${bermasalah ? 'text-rose-700' : 'text-slate-700'}`}>
+                          {iku.score}
+                        </div>
                       </div>
-                      <div className="w-1/12 text-right font-medium text-slate-700">{iku.score}</div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center">
+              <div className="col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
                 <h3 className="font-bold text-slate-800 w-full border-b border-slate-100 pb-4 text-left">Proporsi Status Kinerja</h3>
                 
-                {/* Recharts Donut Chart Tab 1 (FIXED) */}
-                <div className="relative w-full h-56 mt-6">
+                {/* Recharts Donut Chart — angka utama diganti jadi PERSENTASE, bukan total,
+                    karena satu angka capaian keseluruhan itu yang paling cepat dicerna. */}
+                <div className="relative w-full h-48 mt-4">
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                    <span className="text-4xl font-bold text-slate-800">18</span>
-                    <span className="text-xs text-slate-500 mt-1">Total IKU</span>
+                    <span className="text-3xl font-black text-emerald-600">77.7%</span>
+                    <span className="text-[11px] text-slate-500 mt-1">Tercapai (14/18 IKU)</span>
                   </div>
                   <div className="relative z-10 w-full h-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
                           data={dataStatusKinerja}
-                          innerRadius={70}
-                          outerRadius={95}
+                          innerRadius={65}
+                          outerRadius={85}
                           paddingAngle={2}
                           dataKey="value"
                           stroke="none"
@@ -230,20 +265,31 @@ export default function DashboardUtama() {
                   </div>
                 </div>
 
-                <div className="w-full mt-8 space-y-4">
-                  <div className="flex justify-between items-center px-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3.5 h-3.5 rounded-full bg-emerald-500"></div>
-                      <span className="text-sm text-slate-600">Tercapai (77.7%)</span>
-                    </div>
-                    <div className="text-right flex flex-col leading-tight"><span className="font-bold text-slate-800">14</span><span className="text-[10px] font-bold text-slate-500">IKU</span></div>
+                <div className="w-full mt-4 flex justify-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                    <span className="text-xs font-medium text-slate-600">Tercapai <span className="font-bold text-slate-800">14</span></span>
                   </div>
-                  <div className="flex justify-between items-center px-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3.5 h-3.5 rounded-full bg-rose-500"></div>
-                      <span className="text-sm text-slate-600">Tidak Tercapai (22.3%)</span>
-                    </div>
-                    <div className="text-right flex flex-col leading-tight"><span className="font-bold text-slate-800">4</span><span className="text-[10px] font-bold text-slate-500">IKU</span></div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-rose-500"></div>
+                    <span className="text-xs font-medium text-slate-600">Tidak Tercapai <span className="font-bold text-slate-800">4</span></span>
+                  </div>
+                </div>
+
+                {/* PANEL PERLU PERHATIAN — ini kuncinya: pimpinan langsung tahu APA yang
+                    bermasalah tanpa perlu klik "Lihat Detail" atau scroll list 18 indikator. */}
+                <div className="w-full mt-6 pt-5 border-t border-slate-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="material-symbols-outlined text-rose-500 text-[18px]">warning</span>
+                    <h4 className="text-xs font-bold text-rose-700 uppercase tracking-wider">Perlu Perhatian Segera</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {indikatorPerluPerhatian.map((iku) => (
+                      <div key={iku.id} className="flex items-center justify-between bg-rose-50 border border-rose-200 rounded-lg px-3 py-2.5">
+                        <span className="text-xs font-semibold text-rose-800 pr-2">{iku.name}</span>
+                        <span className="text-xs font-bold text-rose-600 whitespace-nowrap">{iku.score}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -278,25 +324,30 @@ export default function DashboardUtama() {
                 <h3 className="font-bold text-slate-800 border-b border-slate-100 pb-4 mb-4">Pemantauan Progres Fisik per Indikator (TW II)</h3>
                 <div className="max-h-[400px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
                   
-                  {dataRencanaAksi.map((item) => (
+                  {sortedDataRencanaAksi.map((item) => {
+                    const delayed = item.color === 'bg-rose-500';
+                    return (
                     <div 
                       key={item.id} 
                       className={`flex items-center justify-between p-3 rounded-lg border transition ${
-                        item.color === 'bg-rose-500' ? 'hover:bg-rose-50 border-rose-100' : 'hover:bg-slate-50 border-slate-100'
+                        delayed
+                          ? 'bg-rose-50/60 border-rose-200 border-l-4 border-l-rose-400'
+                          : 'hover:bg-slate-50 border-slate-100'
                       }`}
                     >
-                      <div className="w-2/5 text-sm font-semibold text-slate-700 truncate pr-4">{item.name}</div>
+                      <div className={`w-2/5 text-sm truncate pr-4 ${delayed ? 'font-bold text-rose-700' : 'font-semibold text-slate-700'}`}>{item.name}</div>
                       <div className="w-3/5 flex flex-col gap-1.5">
                         <div className="flex justify-between text-xs text-slate-500">
                           <span>Target: {item.target}</span>
-                          <span className={`font-bold ${item.color === 'bg-rose-500' ? 'text-rose-600' : 'text-emerald-600'}`}>Real: {item.real}</span>
+                          <span className={`font-bold ${delayed ? 'text-rose-600' : 'text-emerald-600'}`}>Real: {item.real}</span>
                         </div>
                         <div className="w-full bg-slate-200 h-2.5 rounded-full">
                           <div className={`${item.color} h-2.5 rounded-full`} style={{ width: item.width }}></div>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
 
                 </div>
               </div>
@@ -307,8 +358,9 @@ export default function DashboardUtama() {
                 {/* Recharts Donut Chart Tab 2 (FIXED) */}
                 <div className="relative w-full h-52 mt-6">
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                    <span className="text-4xl font-bold text-slate-800">51.4%</span>
-                    <span className="text-xs text-slate-500 mt-1">Rata-Rata Fisik</span>
+                    <span className="text-2xl font-black text-emerald-600">83.3%</span>
+                    <span className="text-[10px] text-slate-500 mt-0.5">On Track</span>
+                    <span className="text-[10px] text-slate-400">(15/18 Kegiatan)</span>
                   </div>
                   <div className="relative z-10 w-full h-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -350,6 +402,23 @@ export default function DashboardUtama() {
                       <span className="text-sm font-medium text-slate-600">Delayed (&lt; 50%)</span>
                     </div>
                     <span className="font-bold text-slate-800">3</span>
+                  </div>
+                </div>
+
+                {/* PANEL PERLU PERCEPATAN — langsung nyebutin kegiatan yang delayed
+                    beserta gap target vs realisasi, konsisten dengan panel perjakin. */}
+                <div className="w-full mt-6 pt-5 border-t border-slate-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="material-symbols-outlined text-rose-500 text-[18px]">speed</span>
+                    <h4 className="text-xs font-bold text-rose-700 uppercase tracking-wider">Kegiatan Perlu Percepatan</h4>
+                  </div>
+                  <div className="space-y-2">
+                    {kegiatanDelayed.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between bg-rose-50 border border-rose-200 rounded-lg px-3 py-2.5">
+                        <span className="text-xs font-semibold text-rose-800 pr-2">{item.name}</span>
+                        <span className="text-xs font-bold text-rose-600 whitespace-nowrap">{item.real} / {item.target}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
