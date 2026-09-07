@@ -1,42 +1,21 @@
 'use client';
 
 import Link from 'next/link';
+import { daftarValidasi } from './data';
 
 export default function ValidasiDataPage() {
-  // DATA ANTREAN: Ditambahkan properti "sasaran" pada setiap baris
-  const tableData = [
-    { 
-      id: 1, 
-      waktu: '24 Okt 2026, 10:30', 
-      pic: 'Siti Aminah', 
-      sasaran: 'Meningkatnya kualitas layanan jasa industri',
-      indikator: '1.1 - Indeks Kepuasan Masyarakat (IKM)', 
-      status: 'Menunggu Review', 
-      statusType: 'warning',
-      isRed: false
-    },
-    { 
-      id: 2, 
-      waktu: '23 Okt 2026, 15:45', 
-      pic: 'Budi Santoso', 
-      sasaran: 'Terwujudnya layanan tata kelola pemerintahan',
-      indikator: '2.1 - Indeks peningkatan PNBP', 
-      status: 'Revisi dari Kapokja', 
-      statusType: 'danger',
-      isRed: true,
-      catatanRevisi: 'Tolong perbaiki angka realisasi pada Triwulan II, sepertinya tidak sesuai dengan dokumen kuitansi.'
-    },
-    { 
-      id: 3, 
-      waktu: '22 Okt 2026, 09:15', 
-      pic: 'Andi Rahman', 
-      sasaran: 'Meningkatnya kualitas layanan jasa industri',
-      indikator: '1.3 - Persentase pelayanan tepat waktu (SLA)', 
-      status: 'Menunggu Review', 
-      statusType: 'warning',
-      isRed: false
-    },
-  ];
+  const tableData = daftarValidasi.map((item) => ({
+    id: item.id,
+    waktu: item.waktu,
+    pic: item.pic,
+    sasaran: item.sasaran,
+    indikator: `${item.kodeIndikator} - ${item.namaIndikator}`,
+    status: item.status,
+    statusType: item.statusType,
+    isRed: item.statusType === 'danger',
+    catatanRevisi: item.catatanRevisi?.isi,
+  }));
+
 
   return (
     <div className="animation-fade-in w-full pb-10">
@@ -195,14 +174,14 @@ export default function ValidasiDataPage() {
                       <div className="flex justify-end">
                         {row.statusType === 'warning' ? (
                           <Link 
-                            href="/validasi-data/detail" 
+                            href={`/validasi-data/detail/${row.id}`}
                             className="border border-blue-500 text-blue-600 hover:bg-blue-50 px-4 py-1.5 rounded-md text-sm font-bold transition flex items-center justify-center gap-1 w-max"
                           >
                             Tinjau Laporan
                           </Link>
                         ) : (
                           <Link 
-                            href="/validasi-data/detail" 
+                            href={`/validasi-data/detail/${row.id}`}
                             className="bg-rose-600 text-white hover:bg-rose-700 px-4 py-1.5 rounded-md text-sm font-bold transition flex items-center justify-center gap-1 shadow-sm w-max"
                           >
                             Tinjau Laporan

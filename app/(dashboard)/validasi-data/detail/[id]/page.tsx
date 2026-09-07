@@ -1,8 +1,47 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { getLaporanById } from '../../data';
 
 export default function DetailValidasiPage() {
+  const params = useParams();
+  const id = Number(params.id);
+  const laporan = getLaporanById(id);
+
+  const [catatan, setCatatan] = useState('');
+  const [errorCatatan, setErrorCatatan] = useState('');
+
+  const handleTolak = () => {
+    if (catatan.trim() === '') {
+      setErrorCatatan('Catatan wajib diisi saat menolak data, agar PIC tahu apa yang perlu diperbaiki.');
+      return;
+    }
+    setErrorCatatan('');
+    // TODO: panggil API tolak-validasi dengan payload { id, catatan }
+  };
+
+  const handleSetujui = () => {
+    setErrorCatatan('');
+    // TODO: panggil API setujui-validasi dengan payload { id, catatan }
+  };
+
+  // Kalau id di URL tidak cocok dengan laporan manapun, tampilkan pesan yang jelas
+  // alih-alih halaman kosong atau data yang salah.
+  if (!laporan) {
+    return (
+      <div className="animation-fade-in w-full pb-10">
+        <Link href="/validasi-data" className="inline-flex items-center gap-2 text-blue-600 font-medium mb-6 hover:underline">
+          <span className="material-symbols-outlined">arrow_back</span> Kembali ke Antrean Validasi
+        </Link>
+        <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+          <p className="text-slate-600 font-medium">Laporan dengan ID tersebut tidak ditemukan.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="animation-fade-in w-full pb-10">
       
@@ -17,7 +56,7 @@ export default function DetailValidasiPage() {
           </Link>
           <div>
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">BBSPJPPI Gov Performance System</p>
-            <h2 className="text-2xl font-bold text-slate-800">Review Capaian Kinerja (Triwulan II)</h2>
+            <h2 className="text-2xl font-bold text-slate-800">Review Capaian Kinerja ({laporan.periode.split(' (')[0]})</h2>
           </div>
         </div>
         
@@ -33,48 +72,50 @@ export default function DetailValidasiPage() {
         </div>
       </header>
 
-      <div className="bg-rose-50/80 border border-rose-200 rounded-xl p-5 mb-6 flex gap-4 items-start shadow-sm">
-        <div className="bg-rose-100 p-2.5 rounded-full flex-shrink-0 mt-0.5">
-          <span className="material-symbols-outlined text-rose-600 text-[22px]">assignment_return</span>
+      {/* Banner Catatan Revisi -- HANYA muncul kalau laporan ini memang pernah ditolak sebelumnya */}
+      {laporan.catatanRevisi && (
+        <div className="bg-rose-50/80 border border-rose-200 rounded-xl p-5 mb-6 flex gap-4 items-start shadow-sm">
+          <div className="bg-rose-100 p-2.5 rounded-full flex-shrink-0 mt-0.5">
+            <span className="material-symbols-outlined text-rose-600 text-[22px]">assignment_return</span>
+          </div>
+          <div>
+            <h4 className="font-bold text-rose-800 text-sm">Catatan Revisi Sebelumnya ({laporan.catatanRevisi.tanggal})</h4>
+            <p className="text-rose-700 text-sm mt-1.5 leading-relaxed italic">
+              "{laporan.catatanRevisi.isi}"
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="font-bold text-rose-800 text-sm">Catatan Revisi Sebelumnya (23 Okt 2026, 15:45)</h4>
-          <p className="text-rose-700 text-sm mt-1.5 leading-relaxed italic">
-            "Tolong perbaiki angka realisasi pada Triwulan II, sepertinya tidak sesuai dengan dokumen kuitansi. Mohon dicek ulang kesesuaiannya dengan file Excel lampiran."
-          </p>
-        </div>
-      </div>
+      )}
 
-      {/* MAIN CONTENT GRID (2 KILOM) */}
+      {/* MAIN CONTENT GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* ========================================== */}
-        {/* KOLOM KIRI (Informasi Utama & Kualitatif)  */}
-        {/* ========================================== */}
+        {/* KOLOM KIRI */}
         <div className="lg:col-span-2 space-y-6">
           
           {/* KARTU 1: Info Indikator Utama */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8">
-            <div className="inline-block bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4">
-              Menunggu Validasi Anda
+            <div className={`inline-block text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4 ${
+              laporan.statusType === 'danger' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+            }`}>
+              {laporan.statusType === 'danger' ? 'Revisi Ulang Diperlukan' : 'Menunggu Validasi Anda'}
             </div>
             
-            {/* 👇 KONTEKS SASARAN & PERUBAHAN KODE INDIKATOR 👇 */}
             <p className="text-sm font-bold text-blue-600 mb-1">
-              Sasaran 1: Meningkatnya kualitas dan kuantitas layanan jasa industri
+              Sasaran: {laporan.sasaran}
             </p>
             <h3 className="text-3xl font-bold text-slate-800 leading-snug mb-4">
-              1.1 - Indeks Kepuasan Masyarakat (IKM)
+              {laporan.kodeIndikator} - {laporan.namaIndikator}
             </h3>
             
             <div className="flex flex-wrap items-center gap-6 text-sm text-slate-600 font-medium mb-8">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">person</span>
-                Dyah AF (PIC Umum)
+                {laporan.pic} ({laporan.picRole})
               </div>
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-                Periode: Triwulan II (Apr-Jun 2026)
+                Periode: {laporan.periode}
               </div>
             </div>
 
@@ -83,16 +124,23 @@ export default function DetailValidasiPage() {
               <div>
                 <p className="text-xs font-bold text-slate-500 mb-1">Target</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-slate-800">3.68</span>
-                  <span className="text-sm font-medium text-slate-500">Indeks</span>
+                  <span className="text-4xl font-black text-slate-800">{laporan.target}</span>
+                  <span className="text-sm font-medium text-slate-500">{laporan.satuanTarget}</span>
                 </div>
               </div>
               <div className="text-right flex flex-col items-end">
-                <p className="text-xs font-bold text-slate-500 mb-1">Realisasi S.d Juni</p>
+                <p className="text-xs font-bold text-slate-500 mb-1">Realisasi S.d {laporan.periode.split('(Apr-Jun')[0].includes('II') ? 'Juni' : 'Periode'}</p>
                 <div className="flex items-center gap-4">
-                  <span className="text-4xl font-black text-blue-600">3.74</span>
-                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-2.5 py-1.5 rounded flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px]">trending_up</span> Melampaui Target
+                  <span className="text-4xl font-black text-blue-600">{laporan.realisasi}</span>
+                  <div className={`text-xs font-bold px-2.5 py-1.5 rounded flex items-center gap-1.5 border ${
+                    laporan.statusRealisasi.toLowerCase().includes('belum')
+                      ? 'bg-rose-50 border-rose-200 text-rose-700'
+                      : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                  }`}>
+                    <span className="material-symbols-outlined text-[16px]">
+                      {laporan.statusRealisasi.toLowerCase().includes('belum') ? 'trending_down' : 'trending_up'}
+                    </span>
+                    {laporan.statusRealisasi}
                   </div>
                 </div>
               </div>
@@ -103,60 +151,36 @@ export default function DetailValidasiPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8">
             <div className="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
               <span className="material-symbols-outlined text-slate-800 text-[22px]">description</span>
-              <h3 className="font-bold text-slate-800 text-lg">Data Kualitatif (Triwulan II)</h3>
+              <h3 className="font-bold text-slate-800 text-lg">Data Kualitatif ({laporan.periode.split(' (')[0]})</h3>
             </div>
 
             <div className="space-y-8">
               
-              {/* Bagian 1: Breakdown Bulanan */}
               <div>
                 <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-4">Rincian Realisasi Bulanan</h4>
                 <div className="space-y-3">
-                  
-                  {/* Bulan 1: April */}
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row gap-4">
-                    <div className="md:w-1/4 font-bold text-slate-700 text-sm flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div> April 2026
+                  {laporan.rincianBulanan.map((bulan) => (
+                    <div key={bulan.label} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row gap-4">
+                      <div className="md:w-1/4 font-bold text-slate-700 text-sm flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div> {bulan.label}
+                      </div>
+                      <div className="md:w-3/4 text-sm text-slate-600 leading-relaxed">
+                        {bulan.deskripsi}
+                      </div>
                     </div>
-                    <div className="md:w-3/4 text-sm text-slate-600 leading-relaxed">
-                      Penyebaran kuesioner kepada 176 pelanggan dan kembali kepada BBSPJPPI sejumlah 15 responden. Hasil analisa IKM secara akumulasi bulan Januari-April adalah sebesar <strong>3,71</strong>.
-                    </div>
-                  </div>
-
-                  {/* Bulan 2: Mei */}
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row gap-4">
-                    <div className="md:w-1/4 font-bold text-slate-700 text-sm flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div> Mei 2026
-                    </div>
-                    <div className="md:w-3/4 text-sm text-slate-600 leading-relaxed">
-                      Penyebaran kuesioner kepada 202 pelanggan dan kembali kepada BBSPJPPI sejumlah 36 responden. Hasil analisa IKM secara akumulasi bulan Januari-Mei adalah sebesar <strong>3,73</strong>.
-                    </div>
-                  </div>
-
-                  {/* Bulan 3: Juni */}
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row gap-4">
-                    <div className="md:w-1/4 font-bold text-slate-700 text-sm flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div> Juni 2026
-                    </div>
-                    <div className="md:w-3/4 text-sm text-slate-600 leading-relaxed">
-                      Penyebaran kuesioner kepada 183 pelanggan dan kembali kepada BBSPJPPI sejumlah 35 responden. Hasil analisa IKM secara akumulasi bulan Januari-Juni adalah sebesar <strong>3,74</strong>.
-                    </div>
-                  </div>
-
+                  ))}
                 </div>
               </div>
 
-              {/* Bagian 2: Evaluasi Triwulan (Kendala & Tindak Lanjut) */}
               <div>
-                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-4">Evaluasi Keseluruhan (Triwulan II)</h4>
+                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-4">Evaluasi Keseluruhan ({laporan.periode.split(' (')[0]})</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-rose-50 border-l-4 border-rose-500 rounded-r-xl p-5">
                     <div className="flex items-center gap-1.5 text-rose-600 font-bold text-sm mb-2">
                       <span className="material-symbols-outlined text-[18px]">warning</span> Kendala
                     </div>
                     <ul className="text-sm text-rose-700 leading-relaxed list-disc pl-4 space-y-1">
-                      <li>Masih sedikitnya jumlah pelanggan yang mengisi kuesioner via WA dan e-mail.</li>
-                      <li>Platform SINDII belum bisa digunakan sebagai sarana penyampaian kuesioner IKM.</li>
+                      {laporan.kendala.map((k, i) => <li key={i}>{k}</li>)}
                     </ul>
                   </div>
                   <div className="bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl p-5">
@@ -164,7 +188,7 @@ export default function DetailValidasiPage() {
                       <span className="material-symbols-outlined text-[18px]">check_circle</span> Tindak Lanjut
                     </div>
                     <p className="text-sm text-emerald-700 leading-relaxed">
-                      Melakukan strategi proaktif di loket penerimaan contoh dan blasting WA secara intens. Mengintegrasikan SINDII agar pelanggan wajib mengisi kuesioner sebelum mengunduh LHU.
+                      {laporan.tindakLanjut}
                     </p>
                   </div>
                 </div>
@@ -174,9 +198,7 @@ export default function DetailValidasiPage() {
           </div>
         </div>
 
-        {/* ========================================== */}
-        {/* KOLOM KANAN (Fisik, Dokumen, & Form Validasi)*/}
-        {/* ========================================== */}
+        {/* KOLOM KANAN */}
         <div className="space-y-6">
           
           {/* KARTU 3: Capaian Fisik */}
@@ -189,21 +211,30 @@ export default function DetailValidasiPage() {
             <div className="flex justify-between items-end mb-3">
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Realisasi</p>
-                <p className="text-3xl font-black text-slate-800">50%</p>
+                <p className="text-3xl font-black text-slate-800">{laporan.capaianFisik.realisasi}%</p>
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Target Triwulan</p>
-                <p className="text-xl font-bold text-slate-700">50%</p>
+                <p className="text-xl font-bold text-slate-700">{laporan.capaianFisik.target}%</p>
               </div>
             </div>
             
-            {/* Progress Bar */}
             <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-6">
-              <div className="bg-emerald-500 h-full rounded-full" style={{ width: '50%' }}></div>
+              <div
+                className={`h-full rounded-full ${laporan.capaianFisik.realisasi >= laporan.capaianFisik.target ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                style={{ width: `${Math.min(laporan.capaianFisik.realisasi, 100)}%` }}
+              ></div>
             </div>
 
-            <div className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-2 rounded flex items-center justify-center gap-1.5 border border-emerald-200">
-              <span className="material-symbols-outlined text-[16px]">check_circle</span> STATUS: TARGET FISIK TERPENUHI
+            <div className={`text-xs font-bold px-3 py-2 rounded flex items-center justify-center gap-1.5 border ${
+              laporan.capaianFisik.realisasi >= laporan.capaianFisik.target
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-rose-50 text-rose-700 border-rose-200'
+            }`}>
+              <span className="material-symbols-outlined text-[16px]">
+                {laporan.capaianFisik.realisasi >= laporan.capaianFisik.target ? 'check_circle' : 'error'}
+              </span>
+              {laporan.capaianFisik.statusLabel}
             </div>
           </div>
 
@@ -220,8 +251,8 @@ export default function DetailValidasiPage() {
                   <span className="material-symbols-outlined">description</span>
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition">Rekap_Survei_IKM_TW2.xlsx</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">1.2 MB • Diunggah 30 Jun</p>
+                  <p className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition">{laporan.dokumen.nama}</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">{laporan.dokumen.ukuran} • Diunggah {laporan.dokumen.tanggalUpload}</p>
                 </div>
               </div>
               <button className="text-slate-400 group-hover:text-blue-600 transition">
@@ -230,9 +261,8 @@ export default function DetailValidasiPage() {
             </div>
           </div>
 
-          {/* KARTU 5: Form Validasi Data (Highlighted) */}
+          {/* KARTU 5: Form Validasi Data */}
           <div className="bg-white rounded-2xl border-2 border-blue-500 shadow-md p-6 lg:p-8 relative overflow-hidden">
-            {/* Soft blue background accent */}
             <div className="absolute inset-0 bg-blue-50/30"></div>
             
             <div className="relative z-10">
@@ -242,19 +272,42 @@ export default function DetailValidasiPage() {
               </div>
 
               <div className="mb-6">
-                <label className="block text-xs font-bold text-slate-600 mb-2">Catatan Review (Opsional jika disetujui)</label>
+                <label className="block text-xs font-bold text-slate-600 mb-2">
+                  Catatan Review <span className="font-normal text-slate-400">(Wajib diisi jika menolak)</span>
+                </label>
                 <textarea 
                   rows={4}
+                  value={catatan}
+                  onChange={(e) => {
+                    setCatatan(e.target.value);
+                    if (errorCatatan) setErrorCatatan('');
+                  }}
                   placeholder="Masukkan instruksi revisi atau catatan persetujuan di sini..."
-                  className="w-full bg-white border border-slate-300 rounded-xl p-4 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition resize-none"
+                  className={`w-full bg-white border rounded-xl p-4 text-sm text-slate-700 outline-none focus:ring-2 transition resize-none ${
+                    errorCatatan
+                      ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-100'
+                      : 'border-slate-300 focus:border-blue-500 focus:ring-blue-100'
+                  }`}
                 />
+                {errorCatatan && (
+                  <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-rose-600">
+                    <span className="material-symbols-outlined text-[16px]">error</span>
+                    {errorCatatan}
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-3">
-                <button className="flex-1 py-3 border border-rose-500 text-rose-600 rounded-xl font-bold text-sm hover:bg-rose-50 transition flex items-center justify-center gap-1">
+                <button
+                  onClick={handleTolak}
+                  className="flex-1 py-3 border border-rose-500 text-rose-600 rounded-xl font-bold text-sm hover:bg-rose-50 transition flex items-center justify-center gap-1"
+                >
                   <span className="material-symbols-outlined text-[18px]">close</span> Tolak & Revisi
                 </button>
-                <button className="flex-1 py-3 bg-[#0f172a] text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition shadow-sm flex items-center justify-center gap-1">
+                <button
+                  onClick={handleSetujui}
+                  className="flex-1 py-3 bg-[#0f172a] text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition shadow-sm flex items-center justify-center gap-1"
+                >
                   <span className="material-symbols-outlined text-[18px]">check</span> Setujui Data
                 </button>
               </div>

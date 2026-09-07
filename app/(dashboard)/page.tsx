@@ -320,35 +320,31 @@ export default function DashboardUtama() {
             </div>
 
             <div className="grid grid-cols-12 gap-6">
-              <div className="col-span-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h3 className="font-bold text-slate-800 border-b border-slate-100 pb-4 mb-4">Pemantauan Progres Fisik per Indikator (TW II)</h3>
-                <div className="max-h-[400px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
-                  
+              <div className="col-span-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                <h3 className="font-bold text-slate-800 border-b border-slate-100 pb-4 mb-4 flex-none">Pemantauan Progres Fisik per Indikator (TW II)</h3>
+                
+                <div className="flex-1 overflow-y-auto pr-4 space-y-1 custom-scrollbar min-h-0">
                   {sortedDataRencanaAksi.map((item) => {
                     const delayed = item.color === 'bg-rose-500';
                     return (
-                    <div 
-                      key={item.id} 
-                      className={`flex items-center justify-between p-3 rounded-lg border transition ${
-                        delayed
-                          ? 'bg-rose-50/60 border-rose-200 border-l-4 border-l-rose-400'
-                          : 'hover:bg-slate-50 border-slate-100'
-                      }`}
-                    >
-                      <div className={`w-2/5 text-sm truncate pr-4 ${delayed ? 'font-bold text-rose-700' : 'font-semibold text-slate-700'}`}>{item.name}</div>
-                      <div className="w-3/5 flex flex-col gap-1.5">
-                        <div className="flex justify-between text-xs text-slate-500">
-                          <span>Target: {item.target}</span>
-                          <span className={`font-bold ${delayed ? 'text-rose-600' : 'text-emerald-600'}`}>Real: {item.real}</span>
+                      <div
+                        key={item.id}
+                        className={`flex items-center justify-between text-sm py-2 px-2 rounded-lg ${
+                          delayed ? 'bg-rose-50/60 border-l-4 border-rose-400' : 'border-l-4 border-transparent'
+                        }`}
+                      >
+                        <div className={`w-5/12 text-right pr-4 truncate ${delayed ? 'text-rose-700 font-semibold' : 'text-slate-700'}`}>
+                          {item.name}
                         </div>
-                        <div className="w-full bg-slate-200 h-2.5 rounded-full">
-                          <div className={`${item.color} h-2.5 rounded-full`} style={{ width: item.width }}></div>
+                        <div className="w-6/12 bg-slate-100 h-3 rounded-full overflow-hidden">
+                          <div className={`${item.color} h-3 rounded-full`} style={{ width: item.width }}></div>
+                        </div>
+                        <div className={`w-1/12 text-right font-medium ${delayed ? 'text-rose-700' : 'text-slate-700'}`}>
+                          {item.real}
                         </div>
                       </div>
-                    </div>
                     );
                   })}
-
                 </div>
               </div>
 
