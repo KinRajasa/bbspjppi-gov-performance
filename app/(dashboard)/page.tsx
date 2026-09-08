@@ -7,34 +7,30 @@ export default function DashboardUtama() {
   const [activeTab, setActiveTab] = useState<'perjakin' | 'rencana_aksi'>('perjakin');
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Tahun yang datanya beneran tersedia di sistem. Karena aplikasi ini baru
-  // dipakai mulai TA 2026, tahun sebelumnya belum punya data -> ditampilkan
-  // sebagai opsi tapi hasilnya empty state, bukan angka karangan.
   const tahunTersedia = ['2026'];
   const semuaOpsiTahun = ['2026', '2025', '2024'];
   const [selectedTahun, setSelectedTahun] = useState('2026');
   const dataTahunIniTersedia = tahunTersedia.includes(selectedTahun);
 
-  // Data 18 IKU (Ringkasan untuk Chart & Bar di Tab Perjakin)
-  const dataIKU = [
-    { id: 1, name: "1. IKM", score: "100.3%", color: "bg-emerald-500", width: "100%" },
-    { id: 2, name: "2. Jml. Perusahaan Pengguna", score: "30.1%", color: "bg-rose-500", width: "30.1%" },
-    { id: 3, name: "3. SLA Pelayanan", score: "99.6%", color: "bg-emerald-500", width: "99.6%" },
-    { id: 4, name: "4. NPS", score: "73.0%", color: "bg-emerald-500", width: "73%" },
-    { id: 5, name: "5. Indeks PNBP", score: "85.0%", color: "bg-rose-500", width: "85%" },
-    { id: 6, name: "6. Jml. Hasil Layanan", score: "105.0%", color: "bg-emerald-500", width: "100%" },
-    { id: 7, name: "7. ROA", score: "90.0%", color: "bg-emerald-500", width: "90%" },
-    { id: 8, name: "8. POBO", score: "92.5%", color: "bg-emerald-500", width: "92.5%" },
-    { id: 9, name: "9. IPASN", score: "100%", color: "bg-emerald-500", width: "100%" },
-    { id: 10, name: "10. Penerapan SPBE", score: "98.0%", color: "bg-emerald-500", width: "98%" },
-    { id: 11, name: "11. IPP", score: "60.0%", color: "bg-rose-500", width: "60%" },
-    { id: 12, name: "12. Integrasi Data BSKJI", score: "110%", color: "bg-emerald-500", width: "100%" },
-    { id: 13, name: "13. Tindak Lanjut Pengawasan", score: "100%", color: "bg-emerald-500", width: "100%" },
-    { id: 14, name: "14. Nilai Kearsipan", score: "88.0%", color: "bg-rose-500", width: "88%" },
-    { id: 15, name: "15. SAKIP", score: "95.0%", color: "bg-emerald-500", width: "95%" },
-    { id: 16, name: "16. IKPA", score: "100%", color: "bg-emerald-500", width: "100%" },
-    { id: 17, name: "17. Laporan Keuangan", score: "92.0%", color: "bg-emerald-500", width: "92%" },
-    { id: 18, name: "18. Penggunaan PDN", score: "100%", color: "bg-emerald-500", width: "100%" },
+  const dataIKU: { id: number; name: string; score: string; color: string; width: string; kategori: 'utama' | 'pendukung' }[] = [
+    { id: 1, name: "1. IKM", score: "100.3%", color: "bg-emerald-500", width: "100%", kategori: "utama" },
+    { id: 2, name: "2. Jml. Perusahaan Pengguna", score: "30.1%", color: "bg-rose-500", width: "30.1%", kategori: "utama" },
+    { id: 3, name: "3. SLA Pelayanan", score: "99.6%", color: "bg-emerald-500", width: "99.6%", kategori: "pendukung" },
+    { id: 4, name: "4. NPS", score: "73.0%", color: "bg-emerald-500", width: "73%", kategori: "pendukung" },
+    { id: 5, name: "5. Indeks PNBP", score: "85.0%", color: "bg-rose-500", width: "85%", kategori: "pendukung" },
+    { id: 6, name: "6. Jml. Hasil Layanan", score: "105.0%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+    { id: 7, name: "7. ROA", score: "90.0%", color: "bg-emerald-500", width: "90%", kategori: "pendukung" },
+    { id: 8, name: "8. POBO", score: "92.5%", color: "bg-emerald-500", width: "92.5%", kategori: "pendukung" },
+    { id: 9, name: "9. IPASN", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+    { id: 10, name: "10. Penerapan SPBE", score: "98.0%", color: "bg-emerald-500", width: "98%", kategori: "pendukung" },
+    { id: 11, name: "11. IPP", score: "60.0%", color: "bg-rose-500", width: "60%", kategori: "pendukung" },
+    { id: 12, name: "12. Integrasi Data BSKJI", score: "110%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+    { id: 13, name: "13. Tindak Lanjut Pengawasan", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+    { id: 14, name: "14. Nilai Kearsipan", score: "88.0%", color: "bg-rose-500", width: "88%", kategori: "pendukung" },
+    { id: 15, name: "15. SAKIP", score: "95.0%", color: "bg-emerald-500", width: "95%", kategori: "pendukung" },
+    { id: 16, name: "16. IKPA", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+    { id: 17, name: "17. Laporan Keuangan", score: "92.0%", color: "bg-emerald-500", width: "92%", kategori: "pendukung" },
+    { id: 18, name: "18. Penggunaan PDN", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
   ];
 
   // Data 18 Rencana Aksi (Khusus Tab Rencana Aksi)
@@ -59,7 +55,6 @@ export default function DashboardUtama() {
     { id: 18, name: "18. Penggunaan PDN", target: "50.0%", real: "50.0%", color: "bg-emerald-500", width: "50%" },
   ];
 
-  // Data Detail IKU untuk Modal Popup
   const detailDataIKU = [
     { id: 1, name: "IKM", pic: "Tim Kerja Pelayanan", target: "3.75 Indeks", real: "3.80 Indeks", cap: "100.3%", status: "MEMENUHI TARGET" },
     { id: 2, name: "Jumlah Perusahaan", pic: "Tim Kerja Pengembangan Jasa Industri", target: "990 Perusahaan", real: "298 Perusahaan", cap: "30.1%", status: "TIDAK MEMENUHI" },
@@ -82,22 +77,33 @@ export default function DashboardUtama() {
   ];
 
   // Data Setup untuk Recharts
+  const [filterKategori, setFilterKategori] = useState<'semua' | 'utama' | 'pendukung'>('semua');
+
+  const jumlahUtama = dataIKU.filter((i) => i.kategori === 'utama').length;
+  const jumlahPendukung = dataIKU.filter((i) => i.kategori === 'pendukung').length;
+
+  const dataIKUTerfilter = dataIKU.filter((iku) =>
+    filterKategori === 'semua' ? true : iku.kategori === filterKategori
+  );
+
+  const jumlahTercapaiTerfilter = dataIKUTerfilter.filter((i) => i.color === 'bg-emerald-500').length;
+  const jumlahTidakTercapaiTerfilter = dataIKUTerfilter.filter((i) => i.color === 'bg-rose-500').length;
+  const persenTercapaiTerfilter = dataIKUTerfilter.length > 0
+    ? ((jumlahTercapaiTerfilter / dataIKUTerfilter.length) * 100).toFixed(1)
+    : '0.0';
+
   const dataStatusKinerja = [
-    { name: 'Tercapai', value: 14, color: '#10b981' },
-    { name: 'Tidak Tercapai', value: 4, color: '#f43f5e' }
+    { name: 'Tercapai', value: jumlahTercapaiTerfilter, color: '#10b981' },
+    { name: 'Tidak Tercapai', value: jumlahTidakTercapaiTerfilter, color: '#f43f5e' }
   ];
 
-  // Indikator yang bermasalah ditaruh paling atas, sisanya menyusul di bawah
-  // agar saat scroll pun mata langsung tertuju ke hal yang perlu ditindaklanjuti.
-  const sortedDataIKU = [...dataIKU].sort((a, b) => {
+  const sortedDataIKU = [...dataIKUTerfilter].sort((a, b) => {
     const aBermasalah = a.color === 'bg-rose-500' ? 0 : 1;
     const bBermasalah = b.color === 'bg-rose-500' ? 0 : 1;
     return aBermasalah - bBermasalah;
   });
 
-  // Daftar ringkas indikator yang tidak memenuhi target, dipakai di panel
-  // "Perlu Perhatian" supaya nama indikatornya langsung terlihat tanpa harus klik apa pun.
-  const indikatorPerluPerhatian = dataIKU.filter((iku) => iku.color === 'bg-rose-500');
+  const indikatorPerluPerhatian = dataIKUTerfilter.filter((iku) => iku.color === 'bg-rose-500');
 
   const dataDeviasiStatus = [
     { name: 'On Track', value: 15, color: '#10b981' },
@@ -133,7 +139,7 @@ export default function DashboardUtama() {
                 activeTab === 'perjakin' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-sm' : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Capaian Perjakin (IKU)
+              Capaian Perjakin (IK)
             </button>
             <button 
               onClick={() => setActiveTab('rencana_aksi')}
@@ -225,10 +231,26 @@ export default function DashboardUtama() {
               
               <div className="col-span-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
-                  <h3 className="font-bold text-slate-800">Status Capaian 18 Indikator Kinerja Utama</h3>
-                  <button onClick={() => setShowDetailModal(true)} className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline">
-                    Lihat Detail
-                  </button>
+                  <div>
+                    <h3 className="font-bold text-slate-800">
+                      Status Capaian Indikator Kinerja
+                      <span className="ml-2 text-sm font-normal text-slate-400">({dataIKUTerfilter.length} indikator)</span>
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <select
+                      value={filterKategori}
+                      onChange={(e) => setFilterKategori(e.target.value as 'semua' | 'utama' | 'pendukung')}
+                      className="border border-slate-300 rounded-md px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 bg-white"
+                    >
+                      <option value="semua">Semua Indikator ({dataIKU.length})</option>
+                      <option value="utama">IKU ({jumlahUtama})</option>
+                      <option value="pendukung">Indikator Pendukung ({jumlahPendukung})</option>
+                    </select>
+                    <button onClick={() => setShowDetailModal(true)} className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline whitespace-nowrap">
+                      Lihat Detail
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="max-h-[500px] overflow-y-auto pr-4 space-y-1 custom-scrollbar">
@@ -263,8 +285,8 @@ export default function DashboardUtama() {
                     karena satu angka capaian keseluruhan itu yang paling cepat dicerna. */}
                 <div className="relative w-full h-48 mt-4">
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                    <span className="text-3xl font-black text-emerald-600">77.7%</span>
-                    <span className="text-[11px] text-slate-500 mt-1">Tercapai (14/18 IKU)</span>
+                    <span className="text-3xl font-black text-emerald-600">{persenTercapaiTerfilter}%</span>
+                    <span className="text-[11px] text-slate-500 mt-1">Tercapai ({jumlahTercapaiTerfilter}/{dataIKUTerfilter.length} indikator)</span>
                   </div>
                   <div className="relative z-10 w-full h-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -283,7 +305,7 @@ export default function DashboardUtama() {
                           ))}
                         </Pie>
                         <Tooltip 
-                          formatter={(value) => [`${value} IKU`]}
+                          formatter={(value) => [`${value} Indikator`]}
                           contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                           wrapperStyle={{ zIndex: 100 }}
                         />
@@ -295,11 +317,11 @@ export default function DashboardUtama() {
                 <div className="w-full mt-4 flex justify-center gap-6">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                    <span className="text-xs font-medium text-slate-600">Tercapai <span className="font-bold text-slate-800">14</span></span>
+                    <span className="text-xs font-medium text-slate-600">Tercapai <span className="font-bold text-slate-800">{jumlahTercapaiTerfilter}</span></span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-rose-500"></div>
-                    <span className="text-xs font-medium text-slate-600">Tidak Tercapai <span className="font-bold text-slate-800">4</span></span>
+                    <span className="text-xs font-medium text-slate-600">Tidak Tercapai <span className="font-bold text-slate-800">{jumlahTidakTercapaiTerfilter}</span></span>
                   </div>
                 </div>
 
@@ -311,12 +333,16 @@ export default function DashboardUtama() {
                     <h4 className="text-xs font-bold text-rose-700 uppercase tracking-wider">Perlu Perhatian Segera</h4>
                   </div>
                   <div className="space-y-2">
-                    {indikatorPerluPerhatian.map((iku) => (
-                      <div key={iku.id} className="flex items-center justify-between bg-rose-50 border border-rose-200 rounded-lg px-3 py-2.5">
-                        <span className="text-xs font-semibold text-rose-800 pr-2">{iku.name}</span>
-                        <span className="text-xs font-bold text-rose-600 whitespace-nowrap">{iku.score}</span>
-                      </div>
-                    ))}
+                    {indikatorPerluPerhatian.length > 0 ? (
+                      indikatorPerluPerhatian.map((iku) => (
+                        <div key={iku.id} className="flex items-center justify-between bg-rose-50 border border-rose-200 rounded-lg px-3 py-2.5">
+                          <span className="text-xs font-semibold text-rose-800 pr-2">{iku.name}</span>
+                          <span className="text-xs font-bold text-rose-600 whitespace-nowrap">{iku.score}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">Semua indikator pada kategori ini sudah memenuhi target.</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -444,7 +470,7 @@ export default function DashboardUtama() {
             
             <div className="px-8 py-6 border-b border-slate-200 flex justify-between items-start bg-white">
               <div>
-                <h2 className="text-2xl font-bold text-slate-800">Rekapitulasi 18 Indikator Kinerja Utama (IKU)</h2>
+                <h2 className="text-2xl font-bold text-slate-800">Rekapitulasi 18 Indikator Kinerja</h2>
                 <p className="text-sm text-slate-500 mt-1">Periode: S.d Juli 2026 | Menampilkan perbandingan target dan realisasi seluruh divisi.</p>
               </div>
               <div className="flex gap-4">

@@ -74,7 +74,7 @@ export default function DashboardLayout({
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    Master Data IKU
+                    Master Data Indikator
                   </Link>
                   <Link 
                     href="/perjanjian-kinerja/rencana-aksi" 

@@ -4,10 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 export default function PerjanjianKinerjaPage() {
-  // STATE BARU: Untuk Timeline Pelaksanaan agar bisa diedit
   const [timeline, setTimeline] = useState('01 Januari 2026 - 31 Desember 2026');
 
-  // Daftar 18 Indikator Kinerja Utama (Sesuai Excel) untuk Dropdown
   const pilihanIndikator = [
     "Indeks Kepuasan Masyarakat (IKM)",
     "Jumlah perusahaan industri yang memanfaatkan layanan",
@@ -126,7 +124,7 @@ export default function PerjanjianKinerjaPage() {
         <div>
           <h2 className="text-3xl font-bold text-slate-800">Inisialisasi Perjanjian Kinerja</h2>
           <p className="text-sm text-slate-500 mt-2">
-            Kelola dan tetapkan Sasaran Kegiatan beserta Indikator Kinerja Utama (IKU) tahunan.
+            Kelola dan tetapkan Sasaran Kegiatan beserta Indikator Kinerja tahunan.
           </p>
         </div>
       </header>
@@ -210,7 +208,7 @@ export default function PerjanjianKinerjaPage() {
                   <thead className="border-b border-slate-200 print:border-black print:bg-white">
                     <tr>
                       <th className="px-4 py-3 font-bold text-slate-500 w-12 print:border-black print:border print:text-black">No</th>
-                      <th className="px-4 py-3 font-bold text-slate-500 print:border-black print:border print:text-black">Indikator Kinerja Utama</th>
+                      <th className="px-4 py-3 font-bold text-slate-500 print:border-black print:border print:text-black">Indikator Kinerja</th>
                       <th className="px-4 py-3 font-bold text-slate-500 w-36 print:border-black print:border print:text-black">Satuan</th>
                       <th className="px-4 py-3 font-bold text-slate-500 w-32 print:border-black print:border print:text-black text-right print:text-left">Target</th>
                       <th className="px-4 py-3 font-bold text-slate-500 w-64 print:border-black print:border print:text-black">PIC</th>
