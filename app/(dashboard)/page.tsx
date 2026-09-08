@@ -7,6 +7,14 @@ export default function DashboardUtama() {
   const [activeTab, setActiveTab] = useState<'perjakin' | 'rencana_aksi'>('perjakin');
   const [showDetailModal, setShowDetailModal] = useState(false);
 
+  // Tahun yang datanya beneran tersedia di sistem. Karena aplikasi ini baru
+  // dipakai mulai TA 2026, tahun sebelumnya belum punya data -> ditampilkan
+  // sebagai opsi tapi hasilnya empty state, bukan angka karangan.
+  const tahunTersedia = ['2026'];
+  const semuaOpsiTahun = ['2026', '2025', '2024'];
+  const [selectedTahun, setSelectedTahun] = useState('2026');
+  const dataTahunIniTersedia = tahunTersedia.includes(selectedTahun);
+
   // Data 18 IKU (Ringkasan untuk Chart & Bar di Tab Perjakin)
   const dataIKU = [
     { id: 1, name: "1. IKM", score: "100.3%", color: "bg-emerald-500", width: "100%" },
@@ -91,16 +99,6 @@ export default function DashboardUtama() {
   // "Perlu Perhatian" supaya nama indikatornya langsung terlihat tanpa harus klik apa pun.
   const indikatorPerluPerhatian = dataIKU.filter((iku) => iku.color === 'bg-rose-500');
 
-  // Rencana Aksi: sort yang delayed ke atas supaya langsung kelihatan
-  const sortedDataRencanaAksi = [...dataRencanaAksi].sort((a, b) => {
-    const aDelayed = a.color === 'bg-rose-500' ? 0 : 1;
-    const bDelayed = b.color === 'bg-rose-500' ? 0 : 1;
-    return aDelayed - bDelayed;
-  });
-
-  // Daftar kegiatan yang delayed, dipakai di panel "Perlu Percepatan"
-  const kegiatanDelayed = dataRencanaAksi.filter((item) => item.color === 'bg-rose-500');
-
   const dataDeviasiStatus = [
     { name: 'On Track', value: 15, color: '#10b981' },
     { name: 'Delayed', value: 3, color: '#f43f5e' }
@@ -148,14 +146,43 @@ export default function DashboardUtama() {
           </div>
           
           <div className="flex items-center gap-3">
-            <label className="text-sm text-slate-500">Periode:</label>
-            <select className="bg-white border border-slate-300 rounded-md px-4 py-2 text-sm font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-blue-500">
+            <label className="text-sm text-slate-500">Tahun:</label>
+            <select
+              value={selectedTahun}
+              onChange={(e) => setSelectedTahun(e.target.value)}
+              className="bg-white border border-slate-300 rounded-md px-4 py-2 text-sm font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {semuaOpsiTahun.map((tahun) => (
+                <option key={tahun} value={tahun}>{tahun}</option>
+              ))}
+            </select>
+
+            <label className="text-sm text-slate-500 ml-2">Periode:</label>
+            <select
+              disabled={!dataTahunIniTersedia}
+              className="bg-white border border-slate-300 rounded-md px-4 py-2 text-sm font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+            >
               <option>Triwulan II (Apr-Jun)</option>
               <option>Triwulan I (Jan-Mar)</option>
             </select>
           </div>
         </div>
 
+        {/* EMPTY STATE: tahun dipilih belum punya data kinerja */}
+        {!dataTahunIniTersedia && (
+          <div className="bg-white border border-slate-200 rounded-xl p-16 flex flex-col items-center justify-center text-center shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-slate-400 text-[32px]">calendar_month</span>
+            </div>
+            <h3 className="font-bold text-slate-700 text-lg mb-1">Belum Ada Data Kinerja Tahun {selectedTahun}</h3>
+            <p className="text-sm text-slate-500 max-w-md">
+              Sistem baru mencatat data kinerja mulai Tahun Anggaran 2026. Silakan pilih tahun 2026 atau tunggu periode pelaporan tahun berikutnya.
+            </p>
+          </div>
+        )}
+
+        {dataTahunIniTersedia && (
+        <>
         {/* ================================================= */}
         {/* KONTEN TAB                                        */}
         {/* ================================================= */}
@@ -320,31 +347,30 @@ export default function DashboardUtama() {
             </div>
 
             <div className="grid grid-cols-12 gap-6">
-              <div className="col-span-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-                <h3 className="font-bold text-slate-800 border-b border-slate-100 pb-4 mb-4 flex-none">Pemantauan Progres Fisik per Indikator (TW II)</h3>
-                
-                <div className="flex-1 overflow-y-auto pr-4 space-y-1 custom-scrollbar min-h-0">
-                  {sortedDataRencanaAksi.map((item) => {
-                    const delayed = item.color === 'bg-rose-500';
-                    return (
-                      <div
-                        key={item.id}
-                        className={`flex items-center justify-between text-sm py-2 px-2 rounded-lg ${
-                          delayed ? 'bg-rose-50/60 border-l-4 border-rose-400' : 'border-l-4 border-transparent'
-                        }`}
-                      >
-                        <div className={`w-5/12 text-right pr-4 truncate ${delayed ? 'text-rose-700 font-semibold' : 'text-slate-700'}`}>
-                          {item.name}
+              <div className="col-span-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h3 className="font-bold text-slate-800 border-b border-slate-100 pb-4 mb-4">Pemantauan Progres Fisik per Indikator (TW II)</h3>
+                <div className="max-h-[400px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+                  
+                  {dataRencanaAksi.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className={`flex items-center justify-between p-3 rounded-lg border transition ${
+                        item.color === 'bg-rose-500' ? 'hover:bg-rose-50 border-rose-100' : 'hover:bg-slate-50 border-slate-100'
+                      }`}
+                    >
+                      <div className="w-2/5 text-sm font-semibold text-slate-700 truncate pr-4">{item.name}</div>
+                      <div className="w-3/5 flex flex-col gap-1.5">
+                        <div className="flex justify-between text-xs text-slate-500">
+                          <span>Target: {item.target}</span>
+                          <span className={`font-bold ${item.color === 'bg-rose-500' ? 'text-rose-600' : 'text-emerald-600'}`}>Real: {item.real}</span>
                         </div>
-                        <div className="w-6/12 bg-slate-100 h-3 rounded-full overflow-hidden">
-                          <div className={`${item.color} h-3 rounded-full`} style={{ width: item.width }}></div>
-                        </div>
-                        <div className={`w-1/12 text-right font-medium ${delayed ? 'text-rose-700' : 'text-slate-700'}`}>
-                          {item.real}
+                        <div className="w-full bg-slate-200 h-2.5 rounded-full">
+                          <div className={`${item.color} h-2.5 rounded-full`} style={{ width: item.width }}></div>
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
+
                 </div>
               </div>
 
@@ -354,9 +380,8 @@ export default function DashboardUtama() {
                 {/* Recharts Donut Chart Tab 2 (FIXED) */}
                 <div className="relative w-full h-52 mt-6">
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                    <span className="text-2xl font-black text-emerald-600">83.3%</span>
-                    <span className="text-[10px] text-slate-500 mt-0.5">On Track</span>
-                    <span className="text-[10px] text-slate-400">(15/18 Kegiatan)</span>
+                    <span className="text-4xl font-bold text-slate-800">51.4%</span>
+                    <span className="text-xs text-slate-500 mt-1">Rata-Rata Fisik</span>
                   </div>
                   <div className="relative z-10 w-full h-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -400,26 +425,11 @@ export default function DashboardUtama() {
                     <span className="font-bold text-slate-800">3</span>
                   </div>
                 </div>
-
-                {/* PANEL PERLU PERCEPATAN — langsung nyebutin kegiatan yang delayed
-                    beserta gap target vs realisasi, konsisten dengan panel perjakin. */}
-                <div className="w-full mt-6 pt-5 border-t border-slate-100">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="material-symbols-outlined text-rose-500 text-[18px]">speed</span>
-                    <h4 className="text-xs font-bold text-rose-700 uppercase tracking-wider">Kegiatan Perlu Percepatan</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {kegiatanDelayed.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between bg-rose-50 border border-rose-200 rounded-lg px-3 py-2.5">
-                        <span className="text-xs font-semibold text-rose-800 pr-2">{item.name}</span>
-                        <span className="text-xs font-bold text-rose-600 whitespace-nowrap">{item.real} / {item.target}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
+        )}
+        </>
         )}
 
       </div>

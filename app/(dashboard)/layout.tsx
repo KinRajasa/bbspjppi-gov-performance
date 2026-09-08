@@ -27,7 +27,7 @@ export default function DashboardLayout({
         <div>
           <div className="p-6 pb-4">
             <h1 className="text-2xl font-bold text-white tracking-wide">BBSPJPPI</h1>
-            <p className="text-xs text-slate-400 mt-1">Gov Performance System</p>
+            <p className="text-xs text-slate-400 mt-1">Dashboard Kinerja</p>
           </div>
           
           <nav className="mt-2 flex flex-col gap-1 pr-4">

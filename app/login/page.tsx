@@ -29,7 +29,7 @@ export default function LoginPage() {
         />
         </div>
           
-          <h1 className="text-4xl font-bold text-white mb-6 tracking-tight">Gov Performance System</h1>
+          <h1 className="text-4xl font-bold text-white mb-6 tracking-tight">Dashboard Kinerja BBSPJPPI</h1>
           
           <p className="text-slate-400 text-sm leading-relaxed max-w-md font-medium">
             Sistem Manajemen dan Evaluasi Kinerja Terpadu<br/>

@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BBSPJPPI Gov Performance System",
+  title: "Dashboard Kinerja BBSPJPPI",
   description: "Dashboard Kinerja BBSPJPPI",
 };
 
