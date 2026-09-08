@@ -7,31 +7,103 @@ export default function DashboardUtama() {
   const [activeTab, setActiveTab] = useState<'perjakin' | 'rencana_aksi'>('perjakin');
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const tahunTersedia = ['2026'];
+  // Tahun yang datanya beneran tersedia -- 2025 sekarang terisi data asli dari
+  // LAKIP TA 2025 (Nota Dinas No. 25/BBSPJPPI/PR/I/2026). 2024 ke bawah belum
+  // ada dokumen sumbernya, jadi tetap empty state.
+  const tahunTersedia = ['2026', '2025'];
+  // Tahun yang punya data Rencana Aksi TRIWULANAN. LAKIP itu laporan akhir
+  // tahun, bukan progres per-triwulan, jadi Tab 2 cuma valid untuk 2026.
+  const tahunRencanaAksiTersedia = ['2026'];
   const semuaOpsiTahun = ['2026', '2025', '2024'];
   const [selectedTahun, setSelectedTahun] = useState('2026');
   const dataTahunIniTersedia = tahunTersedia.includes(selectedTahun);
+  const rencanaAksiTahunIniTersedia = tahunRencanaAksiTersedia.includes(selectedTahun);
 
-  const dataIKU: { id: number; name: string; score: string; color: string; width: string; kategori: 'utama' | 'pendukung' }[] = [
-    { id: 1, name: "1. IKM", score: "100.3%", color: "bg-emerald-500", width: "100%", kategori: "utama" },
-    { id: 2, name: "2. Jml. Perusahaan Pengguna", score: "30.1%", color: "bg-rose-500", width: "30.1%", kategori: "utama" },
-    { id: 3, name: "3. SLA Pelayanan", score: "99.6%", color: "bg-emerald-500", width: "99.6%", kategori: "pendukung" },
-    { id: 4, name: "4. NPS", score: "73.0%", color: "bg-emerald-500", width: "73%", kategori: "pendukung" },
-    { id: 5, name: "5. Indeks PNBP", score: "85.0%", color: "bg-rose-500", width: "85%", kategori: "pendukung" },
-    { id: 6, name: "6. Jml. Hasil Layanan", score: "105.0%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
-    { id: 7, name: "7. ROA", score: "90.0%", color: "bg-emerald-500", width: "90%", kategori: "pendukung" },
-    { id: 8, name: "8. POBO", score: "92.5%", color: "bg-emerald-500", width: "92.5%", kategori: "pendukung" },
-    { id: 9, name: "9. IPASN", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
-    { id: 10, name: "10. Penerapan SPBE", score: "98.0%", color: "bg-emerald-500", width: "98%", kategori: "pendukung" },
-    { id: 11, name: "11. IPP", score: "60.0%", color: "bg-rose-500", width: "60%", kategori: "pendukung" },
-    { id: 12, name: "12. Integrasi Data BSKJI", score: "110%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
-    { id: 13, name: "13. Tindak Lanjut Pengawasan", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
-    { id: 14, name: "14. Nilai Kearsipan", score: "88.0%", color: "bg-rose-500", width: "88%", kategori: "pendukung" },
-    { id: 15, name: "15. SAKIP", score: "95.0%", color: "bg-emerald-500", width: "95%", kategori: "pendukung" },
-    { id: 16, name: "16. IKPA", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
-    { id: 17, name: "17. Laporan Keuangan", score: "92.0%", color: "bg-emerald-500", width: "92%", kategori: "pendukung" },
-    { id: 18, name: "18. Penggunaan PDN", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
-  ];
+  type IndikatorIKU = { id: number; name: string; score: string; color: string; width: string; kategori: 'utama' | 'pendukung' };
+
+  // Kategori "utama" vs "pendukung" -- pembagian ini baru dikonfirmasi untuk
+  // 2 indikator (IKM & Jumlah Perusahaan Pengguna) oleh mentor. Sisanya
+  // diasumsikan "pendukung" (indikator administratif/tata kelola yang wajib
+  // ada di semua instansi, bukan spesifik tusi BBSPJPPI). WAJIB dikonfirmasi
+  // ulang ke mentor apakah ada indikator lain yang sebenarnya juga "utama".
+  // Kategori ini sama untuk semua tahun karena sifatnya "jenis indikator",
+  // bukan sesuatu yang berubah tiap tahun.
+  const dataIKUPerTahun: Record<string, IndikatorIKU[]> = {
+    '2026': [
+      { id: 1, name: "1. IKM", score: "100.3%", color: "bg-emerald-500", width: "100%", kategori: "utama" },
+      { id: 2, name: "2. Jml. Perusahaan Pengguna", score: "30.1%", color: "bg-rose-500", width: "30.1%", kategori: "utama" },
+      { id: 3, name: "3. SLA Pelayanan", score: "99.6%", color: "bg-emerald-500", width: "99.6%", kategori: "pendukung" },
+      { id: 4, name: "4. NPS", score: "73.0%", color: "bg-emerald-500", width: "73%", kategori: "pendukung" },
+      { id: 5, name: "5. Indeks PNBP", score: "85.0%", color: "bg-rose-500", width: "85%", kategori: "pendukung" },
+      { id: 6, name: "6. Jml. Hasil Layanan", score: "105.0%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 7, name: "7. ROA", score: "90.0%", color: "bg-emerald-500", width: "90%", kategori: "pendukung" },
+      { id: 8, name: "8. POBO", score: "92.5%", color: "bg-emerald-500", width: "92.5%", kategori: "pendukung" },
+      { id: 9, name: "9. IPASN", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 10, name: "10. Penerapan SPBE", score: "98.0%", color: "bg-emerald-500", width: "98%", kategori: "pendukung" },
+      { id: 11, name: "11. IPP", score: "60.0%", color: "bg-rose-500", width: "60%", kategori: "pendukung" },
+      { id: 12, name: "12. Integrasi Data BSKJI", score: "110%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 13, name: "13. Tindak Lanjut Pengawasan", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 14, name: "14. Nilai Kearsipan", score: "88.0%", color: "bg-rose-500", width: "88%", kategori: "pendukung" },
+      { id: 15, name: "15. SAKIP", score: "95.0%", color: "bg-emerald-500", width: "95%", kategori: "pendukung" },
+      { id: 16, name: "16. IKPA", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 17, name: "17. Laporan Keuangan", score: "92.0%", color: "bg-emerald-500", width: "92%", kategori: "pendukung" },
+      { id: 18, name: "18. Penggunaan PDN", score: "100%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+    ],
+    // Sumber: LAKIP BBSPJPPI TA 2025 (Nota Dinas No. 25/BBSPJPPI/PR/I/2026, lampiran
+    // "Pengukuran Kinerja"). Capaian dihitung dari kolom "Capaian" di dokumen;
+    // status Tercapai/Tidak Tercapai memakai ambang >=100%. Sesuai isi Nota Dinas,
+    // hanya IKPA yang tidak tercapai (97,34% dari target 93,40).
+    '2025': [
+      { id: 1, name: "1. IKM", score: "100.5%", color: "bg-emerald-500", width: "100%", kategori: "utama" },
+      { id: 2, name: "2. Jml. Perusahaan Pengguna", score: "110.7%", color: "bg-emerald-500", width: "100%", kategori: "utama" },
+      { id: 3, name: "3. SLA Pelayanan", score: "107.1%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 4, name: "4. NPS", score: "157.5%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 5, name: "5. Indeks PNBP", score: "100.0%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 6, name: "6. Jml. Hasil Layanan", score: "114.3%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 7, name: "7. ROA", score: "109.7%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 8, name: "8. POBO", score: "104.2%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 9, name: "9. IPASN", score: "102.6%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 10, name: "10. Penerapan SPBE", score: "115.3%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 11, name: "11. IPP", score: "107.1%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 12, name: "12. Integrasi Data BSKJI", score: "100.0%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 13, name: "13. Tindak Lanjut Pengawasan", score: "166.7%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 14, name: "14. Nilai Kearsipan", score: "123.3%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 15, name: "15. SAKIP", score: "105.2%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 16, name: "16. IKPA", score: "97.3%", color: "bg-rose-500", width: "97.3%", kategori: "pendukung" },
+      { id: 17, name: "17. Laporan Keuangan", score: "126.3%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+      { id: 18, name: "18. Penggunaan PDN", score: "110.9%", color: "bg-emerald-500", width: "100%", kategori: "pendukung" },
+    ],
+  };
+
+  const dataIKU: IndikatorIKU[] = dataIKUPerTahun[selectedTahun] ?? [];
+
+  // Ringkasan anggaran per tahun -- 2025 diambil dari Tabel "Pagu DIPA" & butir 2
+  // Nota Dinas LAKIP TA 2025.
+  const anggaranPerTahun: Record<string, { paguAwal: string; paguRevisi: string; blokir: string; paguEfektif: string; targetKeuangan: string; realisasiKeuanganPersen: string; targetPNBP: string; realisasiPNBP: string; realisasiPNBPPersen: string }> = {
+    '2026': {
+      paguAwal: '41.767.656.000',
+      paguRevisi: '44.740.652.000',
+      blokir: '4.334.126.000',
+      paguEfektif: '40.406.526.000',
+      targetKeuangan: '47,43',
+      realisasiKeuanganPersen: '49,15',
+      targetPNBP: '21.351.876.000',
+      realisasiPNBP: '8.376.976.815',
+      realisasiPNBPPersen: '39,23',
+    },
+    '2025': {
+      paguAwal: '36.159.131.000',
+      paguRevisi: '40.465.963.000',
+      blokir: '4.942.674.000',
+      paguEfektif: '35.523.289.000',
+      targetKeuangan: '99,81',
+      realisasiKeuanganPersen: '99,01',
+      targetPNBP: '18.686.000.000',
+      realisasiPNBP: '20.483.355.953',
+      realisasiPNBPPersen: '109,62',
+    },
+  };
+  const anggaranTahunIni = anggaranPerTahun[selectedTahun] ?? anggaranPerTahun['2026'];
 
   // Data 18 Rencana Aksi (Khusus Tab Rencana Aksi)
   const dataRencanaAksi = [
@@ -55,6 +127,7 @@ export default function DashboardUtama() {
     { id: 18, name: "18. Penggunaan PDN", target: "50.0%", real: "50.0%", color: "bg-emerald-500", width: "50%" },
   ];
 
+  // Data Detail IKU untuk Modal Popup
   const detailDataIKU = [
     { id: 1, name: "IKM", pic: "Tim Kerja Pelayanan", target: "3.75 Indeks", real: "3.80 Indeks", cap: "100.3%", status: "MEMENUHI TARGET" },
     { id: 2, name: "Jumlah Perusahaan", pic: "Tim Kerja Pengembangan Jasa Industri", target: "990 Perusahaan", real: "298 Perusahaan", cap: "30.1%", status: "TIDAK MEMENUHI" },
@@ -97,12 +170,16 @@ export default function DashboardUtama() {
     { name: 'Tidak Tercapai', value: jumlahTidakTercapaiTerfilter, color: '#f43f5e' }
   ];
 
+  // Indikator yang bermasalah ditaruh paling atas, sisanya menyusul di bawah
+  // agar saat scroll pun mata langsung tertuju ke hal yang perlu ditindaklanjuti.
   const sortedDataIKU = [...dataIKUTerfilter].sort((a, b) => {
     const aBermasalah = a.color === 'bg-rose-500' ? 0 : 1;
     const bBermasalah = b.color === 'bg-rose-500' ? 0 : 1;
     return aBermasalah - bBermasalah;
   });
 
+  // Daftar ringkas indikator yang tidak memenuhi target, dipakai di panel
+  // "Perlu Perhatian" supaya nama indikatornya langsung terlihat tanpa harus klik apa pun.
   const indikatorPerluPerhatian = dataIKUTerfilter.filter((iku) => iku.color === 'bg-rose-500');
 
   const dataDeviasiStatus = [
@@ -139,7 +216,7 @@ export default function DashboardUtama() {
                 activeTab === 'perjakin' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-sm' : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Capaian Perjakin (IK)
+              Capaian Perjakin (IKU)
             </button>
             <button 
               onClick={() => setActiveTab('rencana_aksi')}
@@ -165,14 +242,28 @@ export default function DashboardUtama() {
 
             <label className="text-sm text-slate-500 ml-2">Periode:</label>
             <select
-              disabled={!dataTahunIniTersedia}
+              disabled={!dataTahunIniTersedia || !rencanaAksiTahunIniTersedia}
               className="bg-white border border-slate-300 rounded-md px-4 py-2 text-sm font-bold text-slate-700 shadow-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
             >
-              <option>Triwulan II (Apr-Jun)</option>
-              <option>Triwulan I (Jan-Mar)</option>
+              {rencanaAksiTahunIniTersedia ? (
+                <>
+                  <option>Triwulan II (Apr-Jun)</option>
+                  <option>Triwulan I (Jan-Mar)</option>
+                </>
+              ) : (
+                <option>Akhir Tahun (LAKIP)</option>
+              )}
             </select>
           </div>
         </div>
+
+        {/* Info kecil: tahun ini cuma punya laporan akhir tahun (LAKIP), bukan progres triwulanan */}
+        {dataTahunIniTersedia && !rencanaAksiTahunIniTersedia && (
+          <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 -mt-4">
+            <span className="material-symbols-outlined text-[16px]">info</span>
+            Data TA {selectedTahun} bersumber dari LAKIP (laporan akhir tahun), bukan laporan per-triwulan. Tab &quot;Progres Fisik Rencana Aksi&quot; tidak tersedia untuk tahun ini.
+          </div>
+        )}
 
         {/* EMPTY STATE: tahun dipilih belum punya data kinerja */}
         {!dataTahunIniTersedia && (
@@ -202,28 +293,28 @@ export default function DashboardUtama() {
                   <span className="text-sm font-medium text-slate-500">Pagu Awal</span>
                   <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400"><span className="material-symbols-outlined text-[18px]">history</span></div>
                 </div>
-                <span className="text-xl font-bold text-slate-800">Rp 41.767.656.000</span>
+                <span className="text-xl font-bold text-slate-800">Rp {anggaranTahunIni.paguAwal}</span>
               </div>
               <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
                 <div className="flex justify-between items-center w-full mb-3">
                   <span className="text-sm font-medium text-slate-500">Pagu Revisi Terakhir</span>
                   <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500"><span className="material-symbols-outlined text-[18px]">account_balance</span></div>
                 </div>
-                <span className="text-xl font-bold text-slate-800">Rp 44.740.652.000</span>
+                <span className="text-xl font-bold text-slate-800">Rp {anggaranTahunIni.paguRevisi}</span>
               </div>
               <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
                 <div className="flex justify-between items-center w-full mb-3">
                   <span className="text-sm font-medium text-slate-500">Anggaran Blokir</span>
                   <div className="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center text-rose-500"><span className="material-symbols-outlined text-[18px]">lock</span></div>
                 </div>
-                <span className="text-xl font-bold text-slate-800">Rp 4.334.126.000</span>
+                <span className="text-xl font-bold text-slate-800">Rp {anggaranTahunIni.blokir}</span>
               </div>
               <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
                 <div className="flex justify-between items-center w-full mb-3">
                   <span className="text-sm font-medium text-slate-500">Pagu Efektif</span>
                   <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500"><span className="material-symbols-outlined text-[18px]">payments</span></div>
                 </div>
-                <span className="text-xl font-bold text-slate-800">Rp 40.406.526.000</span>
+                <span className="text-xl font-bold text-slate-800">Rp {anggaranTahunIni.paguEfektif}</span>
               </div>
             </div>
 
@@ -244,10 +335,15 @@ export default function DashboardUtama() {
                       className="border border-slate-300 rounded-md px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-blue-500 bg-white"
                     >
                       <option value="semua">Semua Indikator ({dataIKU.length})</option>
-                      <option value="utama">IKU ({jumlahUtama})</option>
+                      <option value="utama">IKU Utama ({jumlahUtama})</option>
                       <option value="pendukung">Indikator Pendukung ({jumlahPendukung})</option>
                     </select>
-                    <button onClick={() => setShowDetailModal(true)} className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline whitespace-nowrap">
+                    <button
+                      onClick={() => setShowDetailModal(true)}
+                      disabled={selectedTahun !== '2026'}
+                      title={selectedTahun !== '2026' ? 'Rincian per-PIC untuk tahun ini belum tersedia' : undefined}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline whitespace-nowrap disabled:text-slate-300 disabled:no-underline disabled:cursor-not-allowed"
+                    >
                       Lihat Detail
                     </button>
                   </div>
@@ -350,7 +446,7 @@ export default function DashboardUtama() {
             </div>
           </div>
 
-        ) : (
+        ) : rencanaAksiTahunIniTersedia ? (
           
           /* --- TAB 2: RENCANA AKSI --- */
           <div className="animation-fade-in">
@@ -453,6 +549,19 @@ export default function DashboardUtama() {
                 </div>
               </div>
             </div>
+          </div>
+
+        ) : (
+
+          /* Tahun ini cuma punya LAKIP (akhir tahun), belum ada progres triwulanan */
+          <div className="bg-white border border-slate-200 rounded-xl p-16 flex flex-col items-center justify-center text-center shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-slate-400 text-[32px]">timeline</span>
+            </div>
+            <h3 className="font-bold text-slate-700 text-lg mb-1">Data Rencana Aksi Triwulanan Tidak Tersedia</h3>
+            <p className="text-sm text-slate-500 max-w-md">
+              TA {selectedTahun} hanya tercatat sebagai laporan akhir tahun (LAKIP). Silakan pilih TA 2026 untuk melihat progres fisik per triwulan.
+            </p>
           </div>
         )}
         </>
