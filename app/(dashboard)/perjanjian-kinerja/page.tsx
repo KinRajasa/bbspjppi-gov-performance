@@ -7,8 +7,8 @@ export default function PerjanjianKinerjaPage() {
   const [timeline, setTimeline] = useState('01 Januari 2026 - 31 Desember 2026');
 
   const pilihanIndikator = [
-    "Indeks Kepuasan Masyarakat (IKM)",
-    "Jumlah perusahaan industri yang memanfaatkan layanan",
+    "Indeks Kepuasan Masyarakat (IKM)*",
+    "Jumlah perusahaan industri yang memanfaatkan layanan*",
     "Persentase pelayanan tepat waktu (SLA)",
     "Nilai Net Promoter Score (NPS)",
     "Indeks peningkatan PNBP",
@@ -33,8 +33,8 @@ export default function PerjanjianKinerjaPage() {
       id: 1,
       namaSasaran: 'Meningkatnya kualitas dan kuantitas layanan jasa industri',
       indikators: [
-        { id: 11, nama: 'Indeks Kepuasan Masyarakat (IKM)', satuan: 'Indeks', target: '3.70', pic: 'Ketua Tim Kerja PJI' },
-        { id: 12, nama: 'Jumlah perusahaan industri yang memanfaatkan layanan', satuan: 'Perusahaan', target: '990', pic: 'Ketua Tim Kerja PJI' },
+        { id: 11, nama: 'Indeks Kepuasan Masyarakat (IKM)*', satuan: 'Indeks', target: '3.70', pic: 'Ketua Tim Kerja PJI' },
+        { id: 12, nama: 'Jumlah perusahaan industri yang memanfaatkan layanan*', satuan: 'Perusahaan', target: '990', pic: 'Ketua Tim Kerja PJI' },
         { id: 13, nama: 'Persentase pelayanan tepat waktu (SLA)', satuan: 'Persen', target: '90.00', pic: 'Ketua Tim Kerja PJI' },
         { id: 14, nama: 'Nilai Net Promoter Score (NPS)', satuan: 'Nilai', target: '41.00', pic: 'Ketua Tim Kerja PJI' }
       ]

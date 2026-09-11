@@ -10,8 +10,8 @@ export default function InputRencanaAksiPage() {
       id: 1,
       namaSasaran: 'Meningkatnya kualitas dan kuantitas layanan jasa industri',
       indikators: [
-        { id: '1.1', nama: 'Indeks Kepuasan Masyarakat (IKM)', target: 3.70, satuan: 'Indeks', pic: 'Ketua Tim Kerja PJI' },
-        { id: '1.2', nama: 'Jumlah perusahaan industri yang memanfaatkan layanan', target: 990, satuan: 'Perusahaan', pic: 'Ketua Tim Kerja PJI' },
+        { id: '1.1', nama: 'Indeks Kepuasan Masyarakat (IKM)*', target: 3.70, satuan: 'Indeks', pic: 'Ketua Tim Kerja PJI' },
+        { id: '1.2', nama: 'Jumlah perusahaan industri yang memanfaatkan layanan*', target: 990, satuan: 'Perusahaan', pic: 'Ketua Tim Kerja PJI' },
         { id: '1.3', nama: 'Persentase pelayanan tepat waktu (SLA)', target: 90.00, satuan: 'Persen', pic: 'Ketua Tim Kerja PJI' }
       ]
     },

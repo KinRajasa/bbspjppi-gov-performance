@@ -107,8 +107,8 @@ export default function DashboardUtama() {
 
   // Data 18 Rencana Aksi (Khusus Tab Rencana Aksi)
   const dataRencanaAksi = [
-    { id: 1, name: "1. IKM", target: "50.0%", real: "50.0%", color: "bg-emerald-500", width: "50%" },
-    { id: 2, name: "2. Jml. Perusahaan Pengguna", target: "50.0%", real: "45.0%", color: "bg-rose-500", width: "45%" },
+    { id: 1, name: "1. IKM*", target: "50.0%", real: "50.0%", color: "bg-emerald-500", width: "50%" },
+    { id: 2, name: "2. Jml. Perusahaan Pengguna*", target: "50.0%", real: "45.0%", color: "bg-rose-500", width: "45%" },
     { id: 3, name: "3. SLA Pelayanan", target: "50.0%", real: "51.0%", color: "bg-emerald-500", width: "51%" },
     { id: 4, name: "4. NPS", target: "50.0%", real: "52.0%", color: "bg-emerald-500", width: "52%" },
     { id: 5, name: "5. Indeks PNBP", target: "50.0%", real: "48.0%", color: "bg-rose-500", width: "48%" },
@@ -129,8 +129,8 @@ export default function DashboardUtama() {
 
   // Data Detail IKU untuk Modal Popup
   const detailDataIKU = [
-    { id: 1, name: "IKM", pic: "Tim Kerja Pelayanan", target: "3.75 Indeks", real: "3.80 Indeks", cap: "100.3%", status: "MEMENUHI TARGET" },
-    { id: 2, name: "Jumlah Perusahaan", pic: "Tim Kerja Pengembangan Jasa Industri", target: "990 Perusahaan", real: "298 Perusahaan", cap: "30.1%", status: "TIDAK MEMENUHI" },
+    { id: 1, name: "Indeks Kepuasan Masyarakat (IKM)*", pic: "Tim Kerja Pelayanan", target: "3.75 Indeks", real: "3.80 Indeks", cap: "100.3%", status: "MEMENUHI TARGET" },
+    { id: 2, name: "Jumlah Perusahaan*", pic: "Tim Kerja Pengembangan Jasa Industri", target: "990 Perusahaan", real: "298 Perusahaan", cap: "30.1%", status: "TIDAK MEMENUHI" },
     { id: 3, name: "SLA Layanan", pic: "Tim Kerja Pengembangan Jasa Industri", target: "90 Persen", real: "99.6 Persen", cap: "110.6%", status: "MEMENUHI TARGET" },
     { id: 4, name: "NPS", pic: "Tim Kerja Pengembangan Jasa Industri", target: "41.00", real: "73.00", cap: "178.0%", status: "MEMENUHI TARGET" },
     { id: 5, name: "Peningkatan PNBP", pic: "Kapokja Keuangan dan BMN", target: "Rp 21,3 Miliar", real: "Rp 15,2 Miliar", cap: "71.3%", status: "TIDAK MEMENUHI" },
@@ -216,7 +216,7 @@ export default function DashboardUtama() {
                 activeTab === 'perjakin' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-sm' : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              Capaian Perjakin (IKU)
+              Capaian Perjakin (IK)
             </button>
             <button 
               onClick={() => setActiveTab('rencana_aksi')}
