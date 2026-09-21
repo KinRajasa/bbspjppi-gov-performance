@@ -1,28 +1,22 @@
 import { ReviewStage, SubmissionStatus } from '@prisma/client';
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { resolveIkuReference, type IkuReference } from '@/lib/resolve-iku-reference';
-import { createAuditLog } from '@/lib/auditLog';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Antrean Kapokja: Menampilkan laporan yang sudah disetujui Katim (SUBMITTED_TO_KAPOKJA atau DISETUJUI)
     // dan laporan yang sedang dalam revisi oleh Kapokja (REVISION_BY_KAPOKJA)
-    // serta laporan yang dikembalikan dari Kapokja ke Katim (REVISION_REQUIRED_BY_KAPOKJA)
     const submissions = await prisma.performanceSubmission.findMany({
       where: {
-        physicalRealization: { not: null },
-        realizationNarrative: { not: null },
-        NOT: { realizationNarrative: '' },
         status: {
           in: [
             SubmissionStatus.SUBMITTED_TO_KAPOKJA,
             SubmissionStatus.DISETUJUI,
             SubmissionStatus.REVISION_BY_KAPOKJA,
-            SubmissionStatus.REVISION_REQUIRED_BY_KAPOKJA, // Tambah status yang dikembalikan
           ],
         },
       },
@@ -82,7 +76,6 @@ export async function GET(request: NextRequest) {
         physicalRealization: item.physicalRealization?.toString() ?? null,
         evidenceFileUrl:
           item.evidenceFileUrl ??
-          item.values.find((value) => value.quarter === item.reportingQuarter)?.evidenceDriveViewUrl ??
           item.values.find((value) => value.quarter === item.reportingQuarter)?.evidenceFileUrl ??
           null,
         targetValue: quarterVal?.targetValue?.toString() ?? null,
@@ -91,7 +84,7 @@ export async function GET(request: NextRequest) {
           quarter: value.quarter,
           targetValue: value.targetValue?.toString() ?? null,
           realizationValue: value.realizationValue?.toString() ?? null,
-          evidenceFileUrl: value.evidenceDriveViewUrl ?? value.evidenceFileUrl,
+          evidenceFileUrl: value.evidenceFileUrl,
           sourceSyncRunId: value.sourceSyncRunId,
         })),
         status: item.status,
@@ -119,9 +112,7 @@ export async function GET(request: NextRequest) {
     ).length;
 
     const revised = data.filter(
-      (item) =>
-        item.status === SubmissionStatus.REVISION_BY_KAPOKJA ||
-        item.status === SubmissionStatus.REVISION_REQUIRED_BY_KAPOKJA
+      (item) => item.status === SubmissionStatus.REVISION_BY_KAPOKJA
     ).length;
 
     return NextResponse.json({
