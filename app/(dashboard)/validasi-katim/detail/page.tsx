@@ -10,7 +10,7 @@ export default function DetailValidasiPage() {
       <header className="mb-8 flex items-center justify-between border-b border-slate-200 pb-5">
         <div className="flex items-center gap-4">
           <Link 
-            href="/validasi-data" 
+            href="/validasi-katim" 
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-600 transition"
           >
             <span className="material-symbols-outlined">arrow_back</span>
@@ -60,7 +60,7 @@ export default function DetailValidasiPage() {
             </div>
             
             <h3 className="text-3xl font-bold text-slate-800 leading-snug mb-4">
-              TJ.1 - Indeks Kepuasan Masyarakat (IKM)
+              Indeks Kepuasan Masyarakat (IKM)
             </h3>
             
             <div className="flex flex-wrap items-center gap-6 text-sm text-slate-600 font-medium mb-8">

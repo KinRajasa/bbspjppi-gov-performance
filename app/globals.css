@@ -17,3 +17,18 @@ body {
   background: #cbd5e1;
   border-radius: 4px;
 }
+
+@media print {
+  @page {
+    margin: 1.2cm;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000;
+  }
+
+  aside {
+    display: none !important;
+  }
+}
