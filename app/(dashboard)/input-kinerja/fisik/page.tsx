@@ -1,255 +1,111 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function InputKinerjaPage() {
-  // 1. DATA DUMMY: Konsisten dengan Master Data & Rencana Aksi
-  const sasarans = [
-    {
-      id: 1,
-      namaSasaran: 'Meningkatnya kualitas dan kuantitas layanan jasa industri',
-      indikators: [
-        { id: '1.1', nama: 'Indeks Kepuasan Masyarakat (IKM)*', target: 3.70, satuan: 'Indeks', pic: 'Ketua Tim Kerja PJI' },
-        { id: '1.2', nama: 'Jumlah perusahaan industri yang memanfaatkan layanan*', target: 990, satuan: 'Perusahaan', pic: 'Ketua Tim Kerja PJI' },
-        { id: '1.3', nama: 'Persentase pelayanan tepat waktu (SLA)', target: 90.00, satuan: 'Persen', pic: 'Ketua Tim Kerja PJI' }
-      ]
-    },
-    {
-      id: 2,
-      namaSasaran: 'Terwujudnya layanan tata kelola pemerintahan yang baik',
-      indikators: [
-        { id: '2.1', nama: 'Indeks peningkatan PNBP', target: 3.00, satuan: 'Indeks', pic: 'Kapokja Keuangan dan BMN' }
-      ]
+type Indicator = { id: number; name: string; picName: string; sasaranName: string };
+type Detail = { targetAnnual: string | null; unit: string; picName: string; planActivity: string; physicalTarget: string | null };
+const periods = [
+  { month: 3, quarter: 1, label: 'Maret (Akhir Triwulan I)' },
+  { month: 6, quarter: 2, label: 'Juni (Akhir Triwulan II)' },
+  { month: 9, quarter: 3, label: 'September (Akhir Triwulan III)' },
+  { month: 12, quarter: 4, label: 'Desember (Akhir Triwulan IV)' },
+];
+
+export default function InputKinerjaFisikPage() {
+  const router = useRouter();
+  const [indicators, setIndicators] = useState<Indicator[]>([]);
+  const [editSubmissionId, setEditSubmissionId] = useState('');
+  const [requestedIndicatorId, setRequestedIndicatorId] = useState('');
+  const [requestedQuarter, setRequestedQuarter] = useState('');
+  const [indicatorId, setIndicatorId] = useState('');
+  const [periodIndex, setPeriodIndex] = useState(0);
+  const [detail, setDetail] = useState<Detail | null>(null);
+  const [narrative, setNarrative] = useState('');
+  const [evaluation, setEvaluation] = useState('');
+  const [constraints, setConstraints] = useState('');
+  const [followUp, setFollowUp] = useState('');
+  const [physical, setPhysical] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const period = periods[periodIndex];
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setEditSubmissionId(params.get('edit') ?? '');
+    setRequestedIndicatorId(params.get('indicatorId') ?? '');
+    setRequestedQuarter(params.get('quarter') ?? '');
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/input-kinerja/indicators').then((response) => response.json()).then((result) => {
+      const list = Array.isArray(result.data) ? result.data : [];
+      setIndicators(list);
+      const requested = requestedIndicatorId && list.find((item: Indicator) => String(item.id) === requestedIndicatorId);
+      if (requested) setIndicatorId(String(requested.id));
+      else if (!editSubmissionId && list[0]) setIndicatorId(String(list[0].id));
+    }).catch(() => setMessage('Indikator belum tersedia.')).finally(() => setLoading(false));
+  }, [requestedIndicatorId, editSubmissionId]);
+
+  useEffect(() => {
+    if (requestedQuarter && ['1', '2', '3', '4'].includes(requestedQuarter)) {
+      setPeriodIndex(Number(requestedQuarter) - 1);
     }
-  ];
+  }, [requestedQuarter]);
 
-  // 2. STATE LOGIC UTAMA
-  const [selectedIndikatorId, setSelectedIndikatorId] = useState('1.1');
-  const [selectedPeriode, setSelectedPeriode] = useState('mar');
-  const [realisasiFisik, setRealisasiFisik] = useState<number | string>(25);
+  useEffect(() => {
+    if (!editSubmissionId) return;
+    fetch(`/api/validasi-data/${editSubmissionId}`, { cache: 'no-store' })
+      .then((response) => response.json())
+      .then((result) => {
+        if (!result.success || !result.data) throw new Error(result.message ?? 'Data revisi tidak ditemukan.');
+        const data = result.data;
+        const masterIndicatorId = data.ikuId ?? data.indicatorId;
+        if (masterIndicatorId) setIndicatorId(String(masterIndicatorId));
+        if (data.reportingQuarter >= 1 && data.reportingQuarter <= 4) setPeriodIndex(data.reportingQuarter - 1);
+        setNarrative(data.realizationNarrative ?? '');
+        setEvaluation(data.evaluation ?? '');
+        setConstraints(data.constraints ?? '');
+        setFollowUp(data.followUp ?? '');
+        setPhysical(data.physicalRealization ?? '');
+      })
+      .catch((error) => setMessage(error instanceof Error ? error.message : 'Data revisi gagal dimuat.'));
+  }, [editSubmissionId]);
 
-  // 3. AUTO-FILL LOGIC: Mencari detail PIC dan Target
-  const selectedIndikator = sasarans.flatMap(s => s.indikators).find(ind => ind.id === selectedIndikatorId) || null;
+  useEffect(() => {
+    if (!indicatorId) return;
+    setDetail(null);
+    fetch(`/api/input-kinerja/indicator-details/${indicatorId}?quarter=${period.quarter}`).then((response) => response.json()).then((result) => setDetail(result.data ?? null)).catch(() => setMessage('Detail indikator gagal dimuat.'));
+  }, [indicatorId, period.quarter]);
 
-  // 4. HELPER: Menentukan nama Triwulan & Target Fisik berdasarkan Bulan
-  const getTriwulanInfo = (bulan: string) => {
-    if (['jan', 'feb', 'mar'].includes(bulan)) return { nama: 'Triwulan I', target: 25 };
-    if (['apr', 'mei', 'jun'].includes(bulan)) return { nama: 'Triwulan II', target: 50 };
-    if (['jul', 'ags', 'sep'].includes(bulan)) return { nama: 'Triwulan III', target: 75 };
-    if (['okt', 'nov', 'des'].includes(bulan)) return { nama: 'Triwulan IV', target: 100 };
-    return { nama: 'Triwulan I', target: 25 };
+  const target = Number(detail?.physicalTarget ?? 0);
+  const physicalNumber = physical === '' ? null : Number(physical.replace(',', '.'));
+  const fulfilled = physicalNumber !== null && Number.isFinite(physicalNumber) && physicalNumber >= target;
+  const needsConstraint = physicalNumber !== null && Number.isFinite(physicalNumber) && target > 0 && physicalNumber < target;
+  const save = async () => {
+    if (!indicatorId || !narrative.trim()) { setMessage('Realisasi kegiatan wajib diisi.'); return; }
+    if (physicalNumber === null || !Number.isFinite(physicalNumber) || physicalNumber < 0 || physicalNumber > 100) { setMessage('Realisasi fisik harus berupa angka 0 sampai 100%.'); return; }
+    if (needsConstraint && !constraints.trim()) { setMessage('Kendala wajib diisi karena realisasi fisik masih di bawah target.'); return; }
+    setSaving(true); setMessage('');
+    try {
+      const response = await fetch('/api/input-kinerja', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ indicatorId: Number(indicatorId), reportingMonth: period.month, quarter: period.quarter, realizationNarrative: narrative, evaluation, constraints, followUp, physicalRealization: physical }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message ?? 'Laporan gagal disimpan.');
+      const nextParams = new URLSearchParams({
+        indicatorId: indicatorId,
+        quarter: String(period.quarter),
+        submissionId: String(result.submissionId),
+      });
+      router.push(`/input-realisasi?${nextParams.toString()}`);
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Laporan gagal disimpan.'); } finally { setSaving(false); }
   };
 
-  const triwulanAktif = getTriwulanInfo(selectedPeriode);
-  const targetFisik = triwulanAktif.target;
-  const isTargetTerpenuhi = Number(realisasiFisik) >= targetFisik;
-
-  return (
-    <div className="animation-fade-in w-full pb-10">
-      
-      {/* HEADER */}
-      <header className="mb-8">
-        <h2 className="text-2xl font-bold text-slate-800">Input Capaian & Realisasi Aksi</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Laporkan realisasi, evaluasi, kendala, dan tindak lanjut periode berjalan.
-        </p>
-      </header>
-
-      <div className="space-y-6">
-        
-        {/* ========================================================= */}
-        {/* TAHAP 1: KUALITATIF                                       */}
-        {/* ========================================================= */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 lg:p-8">
-          <div className="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
-            <span className="material-symbols-outlined text-blue-500 text-[22px]">description</span>
-            <h3 className="font-bold text-slate-700 text-lg">Tahap 1: Laporan Pelaksanaan & Evaluasi (Kualitatif)</h3>
-          </div>
-
-          {/* Baris 1: Filter/Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            
-            {/* DROPDOWN DINAMIS (OPTGROUP) */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-2">Pilih Indikator Kinerja</label>
-              <select 
-                value={selectedIndikatorId}
-                onChange={(e) => setSelectedIndikatorId(e.target.value)}
-                className="w-full border border-slate-300 rounded-md px-3 py-2.5 text-sm text-slate-700 outline-none bg-white cursor-pointer focus:border-blue-500"
-              >
-                {sasarans.map((sasaran, index) => (
-                  <optgroup key={sasaran.id} label={`Sasaran ${index + 1}: ${sasaran.namaSasaran}`} className="font-bold text-slate-500">
-                    {sasaran.indikators.map(ind => (
-                      <option key={ind.id} value={ind.id} className="font-normal text-black">
-                        {ind.id} - {ind.nama}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-            
-            {/* PIC AUTO-FILL */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-2">Penanggung Jawab</label>
-              <input 
-                type="text" 
-                disabled 
-                value={selectedIndikator ? selectedIndikator.pic : ''} 
-                className="w-full bg-slate-50 border border-slate-200 text-slate-500 font-medium text-sm rounded-md px-3 py-2.5 outline-none cursor-not-allowed"
-              />
-            </div>
-            
-            {/* PERIODE PELAPORAN */}
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Periode Pelaporan</label>
-              <select 
-                value={selectedPeriode}
-                onChange={(e) => setSelectedPeriode(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 bg-white cursor-pointer"
-              >
-                <option value="" disabled>-- Pilih Bulan --</option>
-                <option value="jan">Januari</option>
-                <option value="feb">Februari</option>
-                <option value="mar" className="font-bold text-blue-600">Maret (Akhir Triwulan I)</option>
-                <option value="apr">April</option>
-                <option value="mei">Mei</option>
-                <option value="jun" className="font-bold text-blue-600">Juni (Akhir Triwulan II)</option>
-                <option value="jul">Juli</option>
-                <option value="ags">Agustus</option>
-                <option value="sep" className="font-bold text-blue-600">September (Akhir Triwulan III)</option>
-                <option value="okt">Oktober</option>
-                <option value="nov">November</option>
-                <option value="des" className="font-bold text-blue-600">Desember (Akhir Triwulan IV)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Baris 2: Rencana vs Realisasi Kegiatan */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="flex flex-col">
-              <label className="block text-xs font-bold text-slate-600 mb-2">
-                Rencana Kegiatan {triwulanAktif.nama}
-              </label>
-              <textarea 
-                rows={6}
-                disabled
-                className="w-full bg-slate-50 border border-slate-200 rounded-md p-4 text-sm text-slate-600 outline-none cursor-not-allowed custom-scrollbar resize-none leading-relaxed"
-                value="1. Penanganan dan pemantauan komplain pelanggan TW I.&#10;2. Penyebaran kuesioner kepuasan pelanggan TW I.&#10;3. Evaluasi dan penghitungan statistisi penilaian IKM TW I."
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="block text-xs font-bold text-slate-600 mb-2 flex items-center gap-1">
-                Realisasi Kegiatan (Bulan Berjalan) <span className="text-rose-500">*</span>
-              </label>
-              <textarea 
-                rows={6}
-                className="w-full bg-white border border-slate-300 rounded-md p-4 text-sm text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 custom-scrollbar resize-none leading-relaxed"
-                defaultValue="1. Penyebaran kuesioner kepada 118 pelanggan and kembali kepada BBSPJPPI sejumlah 22 responden.&#10;Hasil analisa IKM bulan Januari berpedoman pada PermenPANRB NO 14/2017 adalah sebesar 3.72."
-              />
-            </div>
-          </div>
-
-          {/* Kotak Abu-abu: Analisis & Tindak Lanjut */}
-          <div className="bg-slate-50 rounded-xl border border-slate-200 p-6">
-            <h4 className="font-bold text-slate-700 mb-4 text-sm md:text-base">Analisis & Tindak Lanjut Lapangan</h4>
-            
-            <div className="space-y-6">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-2">Evaluasi Pelaksanaan Kegiatan</label>
-                <textarea 
-                  rows={2}
-                  className="w-full bg-white border border-slate-300 rounded-md p-3 text-sm text-slate-700 outline-none focus:border-blue-500 transition resize-none"
-                  defaultValue="Masih terdapat pelanggan yang belum mengisi kuesioner secara proaktif."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-2">Kendala yang Dihadapi</label>
-                  <textarea 
-                    rows={3}
-                    className="w-full bg-white border border-slate-300 border-l-4 border-l-rose-500 rounded-md p-3 text-sm text-slate-700 outline-none focus:border-rose-400 transition resize-none"
-                    defaultValue="Tingkat respons (response rate) pengisian survei mandiri masih rendah."
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 mb-2">Tindak Lanjut / Perbaikan</label>
-                  <textarea 
-                    rows={3}
-                    className="w-full bg-white border border-slate-300 border-l-4 border-l-blue-500 rounded-md p-3 text-sm text-slate-700 outline-none focus:border-blue-400 transition resize-none"
-                    defaultValue="Memberikan notifikasi pengingat via WhatsApp kepada pelanggan setelah dokumen LHU diserahkan."
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* TAHAP 2: KUANTITATIF                                      */}
-        {/* ========================================================= */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 lg:p-8">
-          <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-4">
-            <span className="material-symbols-outlined text-blue-500 text-[22px]">analytics</span>
-            <h3 className="font-bold text-slate-700 text-lg">Tahap 2: Capaian % Fisik (Kuantitatif)</h3>
-          </div>
-          
-          <p className="text-sm text-slate-500 mb-6">Laporkan persentase realisasi fisik dibandingkan dengan target triwulan berjalan.</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            
-            {/* BOX KIRI: Target (Otomatis menyesuaikan bulan yang dipilih) */}
-            <div className="bg-slate-50 rounded-xl border border-slate-200 p-6 flex flex-col items-center justify-center">
-              <span className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
-                Target Fisik ({triwulanAktif.nama})
-              </span>
-              <div className="text-4xl font-black text-slate-800">{targetFisik}%</div>
-            </div>
-
-            {/* BOX KANAN: Realisasi Input */}
-            <div className="flex flex-col">
-               <span className="text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider text-center md:text-left">
-                 Realisasi % Fisik
-               </span>
-               <div className="flex-1 border border-slate-300 rounded-xl overflow-hidden flex items-stretch bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition shadow-sm">
-                  <input 
-                    type="number"
-                    value={realisasiFisik}
-                    onChange={(e) => setRealisasiFisik(e.target.value)}
-                    className="flex-1 text-center text-4xl font-black text-slate-800 outline-none p-4 w-full"
-                  />
-                  <div className="bg-slate-50 border-l border-slate-200 px-6 flex items-center justify-center text-2xl font-bold text-slate-500">
-                    %
-                  </div>
-               </div>
-            </div>
-          </div>
-
-          {/* INTERAKTIF: Alert Status Otomatis */}
-          <div className={`p-4 rounded-lg flex items-center justify-center gap-2 font-bold text-sm transition-colors duration-300 ${
-            isTargetTerpenuhi ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
-          }`}>
-            <span className="material-symbols-outlined text-[20px]">
-              {isTargetTerpenuhi ? 'check_circle' : 'warning'}
-            </span>
-            {isTargetTerpenuhi ? 'Status: Target Fisik Terpenuhi' : 'Status: Target Fisik Belum Terpenuhi'}
-          </div>
-
-        </div>
-
-        {/* BOTTOM ACTIONS */}
-        <div className="flex justify-end gap-4 pt-4">
-          <Link href="/validasi-data" className="px-6 py-2.5 rounded-md text-sm font-bold text-slate-600 border border-slate-300 bg-white hover:bg-slate-50 transition shadow-sm flex items-center justify-center">
-            Batal
-          </Link>
-          <button className="px-8 py-2.5 rounded-md text-sm font-bold text-white bg-[#0f172a] hover:bg-slate-800 flex items-center gap-2 transition shadow-sm">
-            <span className="material-symbols-outlined text-[18px]">save</span> Simpan Laporan
-          </button>
-        </div>
-
-      </div>
-    </div>
-  );
+  return <div className="animation-fade-in w-full pb-10"><header className="mb-8 border-b border-slate-200 pb-5"><h2 className="text-3xl font-bold text-slate-800">Realisasi Fisik (Rencana Aksi)</h2><p className="mt-2 text-sm text-slate-500">Laporkan realisasi kegiatan dan capaian fisik periode berjalan.</p></header><div className="space-y-6">
+    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"><h3 className="mb-5 border-b border-slate-100 pb-4 text-lg font-bold text-slate-800">Tahap 1: Laporan Pelaksanaan & Evaluasi</h3>{editSubmissionId && <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">Mode revisi aktif. Indikator dan periode mengikuti pengajuan yang dipilih.</div>}<div className="grid gap-5 md:grid-cols-3"><label className="text-sm font-semibold text-slate-600 md:col-span-2">Pilih Indikator<select value={indicatorId} disabled={loading || Boolean(editSubmissionId)} onChange={(event) => setIndicatorId(event.target.value)} className="mt-2 w-full rounded-md border border-slate-300 bg-white p-3 font-normal"><option value="">Pilih indikator</option>{indicators.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="text-sm font-semibold text-slate-600">Penanggung Jawab<input readOnly value={detail?.picName ?? ''} className="mt-2 w-full rounded-md border border-slate-200 bg-slate-50 p-3 font-bold" /></label><label className="text-sm font-semibold text-slate-600 md:col-span-3">Periode Pelaporan<select value={periodIndex} disabled={Boolean(editSubmissionId)} onChange={(event) => setPeriodIndex(Number(event.target.value))} className="mt-2 w-full rounded-md border border-slate-300 bg-white p-3 font-normal">{periods.map((item, index) => <option key={item.label} value={index}>{item.label}</option>)}</select></label></div><div className="mt-5 grid gap-5 md:grid-cols-2"><label className="text-sm font-semibold text-slate-600">Rencana Kegiatan {period.label}<textarea readOnly rows={5} value={detail?.planActivity ?? 'Belum ada rencana kegiatan.'} className="mt-2 w-full rounded-md border border-slate-200 bg-slate-50 p-3 font-normal" /></label><label className="text-sm font-semibold text-slate-600">Realisasi Kegiatan (Bulan Berjalan) *<textarea required rows={5} value={narrative} onChange={(event) => setNarrative(event.target.value)} className="mt-2 w-full rounded-md border border-slate-300 p-3 font-normal" /></label></div></section>
+    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"><h3 className="mb-5 text-lg font-bold text-slate-800">Analisis & Tindak Lanjut Lapangan</h3><label className="block text-sm font-semibold text-slate-600">Evaluasi Pelaksanaan Kegiatan<textarea rows={6} value={evaluation} onChange={(event) => setEvaluation(event.target.value)} placeholder="Jelaskan evaluasi pelaksanaan kegiatan..." className="mt-2 min-h-[160px] w-full resize-y rounded-md border border-slate-300 p-3 font-normal" /></label><div className="mt-5 grid gap-5 md:grid-cols-2"><label className={`text-sm font-semibold ${needsConstraint ? 'text-rose-700' : 'text-slate-600'}`}>Kendala yang Dihadapi {needsConstraint && <span className="text-rose-600">*</span>}<textarea rows={5} required={needsConstraint} value={constraints} onChange={(event) => setConstraints(event.target.value)} placeholder={needsConstraint ? 'Wajib diisi karena realisasi di bawah target...' : 'Tuliskan kendala jika ada...'} className={`mt-2 min-h-[140px] w-full resize-y rounded-md border p-3 font-normal ${needsConstraint ? 'border-rose-300 bg-rose-50' : 'border-slate-300 bg-white'}`} />{needsConstraint && !constraints.trim() && <span className="mt-1 block text-xs font-medium text-rose-600">Isi kendala sebelum melanjutkan ke bukti dukung.</span>}</label><label className="text-sm font-semibold text-blue-700">Tindak Lanjut / Perbaikan<textarea rows={5} value={followUp} onChange={(event) => setFollowUp(event.target.value)} className="mt-2 min-h-[140px] w-full resize-y rounded-md border border-blue-200 bg-blue-50 p-3 font-normal" /></label></div></section>
+    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"><h3 className="mb-5 border-b border-slate-100 pb-4 text-lg font-bold text-slate-800">Tahap 2: Capaian % Fisik</h3><div className="grid gap-5 md:grid-cols-2"><div className="rounded-md bg-slate-50 p-5"><p className="text-xs font-bold uppercase text-slate-500">Target Fisik ({period.label})</p><p className="mt-2 text-4xl font-black text-slate-800">{detail?.physicalTarget ?? '-'}%</p></div><label className="text-sm font-semibold text-slate-600">Realisasi % Fisik<input type="number" min="0" max="100" step="any" value={physical} onChange={(event) => setPhysical(event.target.value)} className="mt-2 w-full rounded-md border border-slate-300 p-3 text-2xl font-bold" /></label></div>{physical !== '' && <div className={`mt-5 rounded-md border p-4 font-bold ${fulfilled ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}>Status: Target Fisik {fulfilled ? 'Terpenuhi' : 'Belum Terpenuhi'}</div>}</section>
+    <div className="flex items-center justify-between border-t border-slate-200 pt-5"><Link href="/input-kinerja" className="rounded-md border border-slate-300 px-5 py-2.5 text-sm font-bold text-slate-600">Kembali</Link><div className="flex items-center gap-4">{message && <span className="text-sm text-rose-600">{message}</span>}<button onClick={save} disabled={saving || !detail || (needsConstraint && !constraints.trim())} className="rounded-md bg-slate-900 px-6 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">{saving ? 'Menyimpan...' : 'Simpan & Lanjutkan'}</button></div></div>
+  </div></div>;
 }

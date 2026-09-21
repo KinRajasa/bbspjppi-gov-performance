@@ -1,213 +1,117 @@
 'use client';
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+type ActivityLog = {
+  id: number;
+  createdAt: string;
+  userName: string;
+  userRoles: string[];
+  module: string;
+  action: string;
+  description: string;
+  referenceType: string | null;
+  referenceId: number | null;
+  ipAddress: string | null;
+};
+
+type Pagination = { currentPage: number; pageSize: number; totalRecords: number; totalPages: number };
+
+const roleLabel: Record<string, string> = {
+  ADMIN: 'Admin',
+  PIC: 'PIC',
+  KATIM: 'Katim / Reviewer',
+  KAPOKJA: 'Kapokja',
+  PIMPINAN: 'Pimpinan',
+};
+
+function activityKind(log: ActivityLog) {
+  const text = `${log.action} ${log.module}`.toUpperCase();
+  if (/REJECT|REVISI|TOLAK/.test(text)) return { label: 'PENOLAKAN / REVISI', className: 'bg-rose-100 text-rose-700' };
+  if (/APPROVE|VALIDASI|PUBLISH/.test(text)) return { label: 'VALIDASI', className: 'bg-emerald-100 text-emerald-700' };
+  if (/IMPORT|MASTER/.test(text)) return { label: 'MASTER DATA / IMPORT', className: 'bg-purple-100 text-purple-700' };
+  return { label: 'INPUT DATA', className: 'bg-blue-100 text-blue-700' };
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+  return {
+    date: new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(date),
+    time: `${new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).format(date)} WIB`,
+  };
+}
+
 export default function LogAktivitasPage() {
-  // Data dummy untuk tabel Log Aktivitas
-  const tableData = [
-    {
-      id: 1,
-      waktu: '18 Ags 2026',
-      jam: '09:15 WIB',
-      pengguna: 'Bapak Ahmad',
-      peran: 'Katim / Reviewer',
-      jenisAktivitas: 'VALIDASI',
-      badgeColor: 'emerald',
-      deskripsi: 'Menyetujui capaian indikator 1.3-SLA',
-      modul: 'Validasi Data',
-      refId: '#1042',
-      ip: '192.168.1.45'
-    },
-    {
-      id: 2,
-      waktu: '18 Ags 2026',
-      jam: '08:30 WIB',
-      pengguna: 'Ibu Linda',
-      peran: 'Kapokja',
-      jenisAktivitas: 'PENOLAKAN',
-      badgeColor: 'rose',
-      deskripsi: 'Menolak capaian indikator 2.1-PNBP (Catatan: Bukti buram)',
-      modul: 'Validasi Data',
-      refId: '#1038',
-      ip: '114.120.8.22'
-    },
-    {
-      id: 3,
-      waktu: '17 Ags 2026',
-      jam: '14:00 WIB',
-      pengguna: 'Budi Santoso',
-      peran: 'PIC Umum',
-      jenisAktivitas: 'INPUT DATA',
-      badgeColor: 'blue',
-      deskripsi: 'Mengunggah bukti dukung dan menyimpan realisasi 2.1-PNBP',
-      modul: 'Input Kinerja',
-      refId: '',
-      ip: '192.168.1.12'
-    },
-    {
-      id: 4,
-      waktu: '10 Jan 2026',
-      jam: '10:00 WIB',
-      pengguna: 'Admin Program',
-      peran: 'Tim Program',
-      jenisAktivitas: 'MASTER DATA',
-      badgeColor: 'purple',
-      deskripsi: 'Menetapkan Rencana Aksi Tahunan untuk 18 Indikator',
-      modul: 'Perjanjian Kinerja',
-      refId: '',
-      ip: '10.0.0.5'
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({ currentPage: 1, pageSize: 10, totalRecords: 0, totalPages: 1 });
+  const [search, setSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [role, setRole] = useState('ALL');
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const loadLogs = useCallback(async (requestedPage = page) => {
+    setLoading(true);
+    setError('');
+    const params = new URLSearchParams({ page: String(requestedPage) });
+    if (search.trim()) params.set('search', search.trim());
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+    if (role !== 'ALL') params.set('role', role);
+    try {
+      const response = await fetch(`/api/activity-logs?${params.toString()}`, { cache: 'no-store' });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || 'Log aktivitas gagal dimuat.');
+      setLogs(result.data ?? []);
+      setPagination(result.pagination);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Log aktivitas gagal dimuat.');
+    } finally {
+      setLoading(false);
     }
-  ];
+  }, [endDate, page, role, search, startDate]);
+
+  useEffect(() => { loadLogs(1); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const applyFilter = () => {
+    setPage(1);
+    void loadLogs(1);
+  };
+
+  const currentRange = useMemo(() => {
+    if (!pagination.totalRecords) return 'Menampilkan 0 aktivitas';
+    const from = (pagination.currentPage - 1) * pagination.pageSize + 1;
+    const to = Math.min(pagination.currentPage * pagination.pageSize, pagination.totalRecords);
+    return `Menampilkan ${from}-${to} dari ${pagination.totalRecords} aktivitas`;
+  }, [pagination]);
 
   return (
-    <div className="animation-fade-in w-full pb-10 flex flex-col min-h-[90vh]">
-      
-      {/* HEADER & PROFILE INFO */}
-      <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4 border-b border-slate-200 pb-5">
+    <div className="animation-fade-in flex min-h-[90vh] w-full flex-col pb-10">
+      <header className="mb-8 flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 md:flex-row md:items-end">
         <div>
           <h2 className="text-3xl font-bold text-slate-800">Log Aktivitas Sistem</h2>
-          <p className="text-sm text-slate-500 mt-2">
-            Jejak audit dan riwayat aktivitas pengguna untuk transparansi dan keamanan data.
-          </p>
+          <p className="mt-2 text-sm text-slate-500">Jejak audit dan riwayat aktivitas pengguna untuk transparansi dan keamanan data.</p>
         </div>
-        
-        {/* Profile (Admin) */}
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col text-right">
-            <span className="font-bold text-slate-800 text-sm leading-tight">Admin System</span>
-            <span className="text-xs text-slate-500">Super Administrator</span>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-sm">
-            AS
-          </div>
-        </div>
+       
       </header>
 
-      {/* ========================================================= */}
-      {/* MAIN CONTAINER (CARD)                                     */}
-      {/* ========================================================= */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex-1 flex flex-col">
-        
-        {/* TOOLBAR FILTER */}
-        <div className="p-6 border-b border-slate-100 bg-slate-50/30">
-          <div className="flex flex-col lg:flex-row gap-4 items-end">
-            
-            {/* Pencarian */}
-            <div className="flex-1 w-full">
-              <label className="block text-xs font-bold text-slate-500 mb-2">Pencarian</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[20px]">search</span>
-                <input 
-                  type="text" 
-                  placeholder="Cari pengguna, IP, atau aktivitas..." 
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition bg-white"
-                />
-              </div>
-            </div>
-
-            {/* Rentang Waktu */}
-            <div className="w-full lg:w-64">
-              <label className="block text-xs font-bold text-slate-500 mb-2">Rentang Waktu</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[18px]">calendar_today</span>
-                <input 
-                  type="text" 
-                  defaultValue="17 Ags 2026 - 18 Ags 2026" 
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 transition bg-white cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* Peran */}
-            <div className="w-full lg:w-56">
-              <label className="block text-xs font-bold text-slate-500 mb-2">Peran</label>
-              <select className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500 bg-white cursor-pointer">
-                <option>Semua Peran</option>
-                <option>Katim / Reviewer</option>
-                <option>PIC Umum</option>
-                <option>Tim Program</option>
-              </select>
-            </div>
-
-            {/* Tombol Filter */}
-            <button className="w-full lg:w-auto bg-[#0f172a] text-white hover:bg-slate-800 px-6 py-2.5 rounded-lg text-sm font-bold transition shadow-sm flex items-center justify-center gap-2 h-[42px]">
-              <span className="material-symbols-outlined text-[18px]">filter_list</span> Filter
-            </button>
-
+      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 bg-slate-50/30 p-6">
+          <div className="flex flex-col items-end gap-4 lg:flex-row">
+            <div className="w-full flex-1"><label className="mb-2 block text-xs font-bold text-slate-500">Pencarian</label><input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && applyFilter()} placeholder="Cari pengguna, IP, atau aktivitas..." className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-blue-500" /></div>
+            <div className="w-full lg:w-64"><label className="mb-2 block text-xs font-bold text-slate-500">Mulai Tanggal</label><input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-blue-500" /></div>
+            <div className="w-full lg:w-64"><label className="mb-2 block text-xs font-bold text-slate-500">Sampai Tanggal</label><input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-blue-500" /></div>
+            <div className="w-full lg:w-56"><label className="mb-2 block text-xs font-bold text-slate-500">Peran</label><select value={role} onChange={(e) => setRole(e.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500"><option value="ALL">Semua Peran</option><option value="ADMIN">ADMIN</option><option value="PIC">PIC</option><option value="KATIM">KATIM</option><option value="KAPOKJA">KAPOKJA</option><option value="PIMPINAN">PIMPINAN</option></select></div>
+            <button onClick={applyFilter} className="flex h-[42px] w-full items-center justify-center gap-2 rounded-lg bg-[#0f172a] px-6 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 lg:w-auto"><span className="material-symbols-outlined text-[18px]">filter_list</span>Filter</button>
           </div>
         </div>
 
-        {/* TABEL DATA */}
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-white border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px] w-36">Waktu & Tanggal</th>
-                <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px] w-48">Pengguna</th>
-                <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px]">Aktivitas</th>
-                <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px] w-48">Modul Referensi</th>
-                <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px] text-right w-36">Alamat IP</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {tableData.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50/50 transition">
-                  {/* Kolom 1: Waktu */}
-                  <td className="px-6 py-5 align-top">
-                    <p className="font-bold text-slate-700">{row.waktu}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{row.jam}</p>
-                  </td>
-                  
-                  {/* Kolom 2: Pengguna */}
-                  <td className="px-6 py-5 align-top">
-                    <p className="font-bold text-slate-800">{row.pengguna}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">({row.peran})</p>
-                  </td>
-                  
-                  {/* Kolom 3: Aktivitas */}
-                  <td className="px-6 py-5 align-top">
-                    <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-2 ${
-                      row.badgeColor === 'emerald' ? 'bg-emerald-100 text-emerald-700' :
-                      row.badgeColor === 'rose' ? 'bg-rose-100 text-rose-700' :
-                      row.badgeColor === 'blue' ? 'bg-blue-100 text-blue-700' :
-                      'bg-purple-100 text-purple-700'
-                    }`}>
-                      {row.jenisAktivitas}
-                    </span>
-                    <p className="text-slate-700 leading-relaxed font-medium">
-                      {row.deskripsi}
-                    </p>
-                  </td>
-                  
-                  {/* Kolom 4: Modul */}
-                  <td className="px-6 py-5 align-top">
-                    <p className="text-slate-700">{row.modul}</p>
-                    {row.refId && (
-                      <p className="text-xs text-slate-500 mt-0.5">(ID: {row.refId})</p>
-                    )}
-                  </td>
-                  
-                  {/* Kolom 5: IP */}
-                  <td className="px-6 py-5 align-top text-right font-mono text-xs text-slate-500">
-                    {row.ip}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* PAGINATION FOOTER */}
-        <div className="p-4 border-t border-slate-100 flex justify-between items-center bg-white text-sm mt-auto">
-          <span className="text-slate-500">Menampilkan 1-4 dari 1,204 aktivitas</span>
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-300 text-slate-400 hover:bg-slate-50 transition"><span className="material-symbols-outlined text-[18px]">chevron_left</span></button>
-            <button className="w-8 h-8 flex items-center justify-center rounded bg-[#0f172a] text-white font-bold shadow-sm">1</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 transition">2</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded text-slate-400">...</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 transition">301</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-300 text-slate-600 hover:bg-slate-50 transition"><span className="material-symbols-outlined text-[18px]">chevron_right</span></button>
-          </div>
-        </div>
-
+        {loading ? <p className="p-12 text-center text-sm text-slate-500">Memuat log aktivitas...</p> : error ? <p className="p-12 text-center text-sm text-rose-600">{error}</p> : logs.length === 0 ? <p className="p-12 text-center text-sm text-slate-500">Belum ada aktivitas sesuai filter.</p> : (
+          <div className="flex-1 overflow-x-auto"><table className="w-full text-left text-sm"><thead className="border-b border-slate-200 bg-white"><tr><th className="w-36 px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Waktu & Tanggal</th><th className="w-48 px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Pengguna</th><th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Aktivitas</th><th className="w-48 px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Modul Referensi</th><th className="w-36 px-6 py-4 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500">Alamat IP</th></tr></thead><tbody className="divide-y divide-slate-100">{logs.map((log) => { const date = formatDate(log.createdAt); const kind = activityKind(log); return <tr key={log.id} className="transition hover:bg-slate-50/50"><td className="px-6 py-5 align-top"><p className="font-bold text-slate-700">{date.date}</p><p className="mt-0.5 text-xs text-slate-500">{date.time}</p></td><td className="px-6 py-5 align-top"><p className="font-bold text-slate-800">{log.userName}</p><p className="mt-0.5 text-xs text-slate-500">({log.userRoles.map((item) => roleLabel[item] ?? item).join(' / ') || 'Pengguna'})</p></td><td className="px-6 py-5 align-top"><span className={`mb-2 inline-block rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${kind.className}`}>{kind.label}</span><p className="font-medium leading-relaxed text-slate-700">{log.description}</p></td><td className="px-6 py-5 align-top"><p className="text-slate-700">{log.module}</p>{log.referenceId !== null && <p className="mt-0.5 text-xs text-slate-500">(ID: #{log.referenceId})</p>}</td><td className="px-6 py-5 text-right align-top font-mono text-xs text-slate-500">{log.ipAddress || '-'}</td></tr>; })}</tbody></table></div>
+        )}
+        <div className="flex items-center justify-between border-t border-slate-100 bg-white p-4 text-sm"><span className="text-slate-500">{currentRange}</span><div className="flex items-center gap-2"><button disabled={page <= 1 || loading} onClick={() => { const next = page - 1; setPage(next); void loadLogs(next); }} className="flex h-8 w-8 items-center justify-center rounded border border-slate-300 text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"><span className="material-symbols-outlined text-[18px]">chevron_left</span></button><span className="min-w-8 text-center font-bold text-slate-700">{pagination.currentPage}</span><button disabled={page >= pagination.totalPages || loading} onClick={() => { const next = page + 1; setPage(next); void loadLogs(next); }} className="flex h-8 w-8 items-center justify-center rounded border border-slate-300 text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"><span className="material-symbols-outlined text-[18px]">chevron_right</span></button></div></div>
       </div>
     </div>
   );

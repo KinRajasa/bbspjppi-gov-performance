@@ -1,0 +1,401 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  ADMIN
+  PIC
+  KATIM
+  KAPOKJA
+  PIMPINAN
+}
+
+enum ComparisonOperator {
+  GTE
+  LTE
+  EQ
+}
+
+enum SubmissionStatus {
+  DRAFT
+  MENUNGGU_BUKTI
+  MENUNGGU_VALIDASI_KATIM
+  DISETUJUI
+  DITOLAK_KATIM
+  REVISI_KATIM
+  SUBMITTED_TO_KATIM
+  REVISION_BY_KATIM
+  REVISION_REQUIRED_BY_KATIM
+  SUBMITTED_TO_KAPOKJA
+  REVISION_BY_KAPOKJA
+  REVISION_REQUIRED_BY_KAPOKJA
+  APPROVED
+  PUBLISHED
+}
+
+enum ReviewStage {
+  KATIM
+  KAPOKJA
+}
+
+enum ReviewDecision {
+  APPROVED
+  REVISION
+}
+
+enum SyncTrigger {
+  SCHEDULED
+  MANUAL
+}
+
+enum SyncStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+  CONFLICT
+}
+
+model Role {
+  id        Int        @id @default(autoincrement())
+  name      RoleName   @unique
+  description String?  @db.VarChar(255)
+  users     UserRole[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("roles")
+}
+
+model WorkUnit {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique @db.VarChar(50)
+  name      String   @db.VarChar(255)
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("work_units")
+}
+
+model User {
+  id                Int                   @id @default(autoincrement())
+  workUnitId        Int?
+  name              String                @db.VarChar(150)
+  email             String                @unique @db.VarChar(191)
+  passwordHash      String                @db.VarChar(255)
+  isActive          Boolean               @default(true)
+  workUnit          WorkUnit?             @relation(fields: [workUnitId], references: [id])
+  roles             UserRole[]
+  assignments       IndicatorAssignment[]
+  ikuPicAssignments  IndikatorKinerjaUtama[] @relation("IkuPic")
+  ikuKatimAssignments IndikatorKinerjaUtama[] @relation("IkuKatim")
+  ikuAssignments     IkuPicAssignment[]
+  submittedReports  PerformanceSubmission[] @relation("SubmittedBy")
+  reviews           SubmissionReview[]
+  sources           GoogleSheetSource[]  @relation("SourceCreatedBy")
+  activityLogs      ActivityLog[]
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  @@map("users")
+}
+
+model UserRole {
+  userId Int
+  roleId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model FiscalYear {
+  id             Int                     @id @default(autoincrement())
+  year           Int                     @unique
+  startDate      DateTime                @db.Date
+  endDate        DateTime                @db.Date
+  isActive       Boolean                 @default(false)
+  assignments    IndicatorAssignment[]
+  submissions    PerformanceSubmission[]
+  googleSources  GoogleSheetSource[]
+  budget         BudgetAllocation?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@map("fiscal_years")
+}
+
+model PerformanceIndicator {
+  id                 Int                     @id @default(autoincrement())
+  code               String                  @unique @db.VarChar(50)
+  name               String                  @db.VarChar(500)
+  unit               String?                 @db.VarChar(100)
+  comparisonOperator ComparisonOperator      @default(GTE)
+  isActive           Boolean                 @default(true)
+  assignments        IndicatorAssignment[]
+  submissions        PerformanceSubmission[]
+  googleSources      GoogleSheetSource[]
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  @@map("performance_indicators")
+}
+
+model IndicatorAssignment {
+  id          Int                  @id @default(autoincrement())
+  fiscalYearId Int
+  indicatorId Int
+  picUserId   Int
+  fiscalYear  FiscalYear           @relation(fields: [fiscalYearId], references: [id], onDelete: Cascade)
+  indicator   PerformanceIndicator @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+  picUser     User                 @relation(fields: [picUserId], references: [id])
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@unique([fiscalYearId, indicatorId])
+  @@map("indicator_assignments")
+}
+
+model PerformanceSubmission {
+  id           Int                     @id @default(autoincrement())
+  fiscalYearId Int
+  indicatorId  Int
+  submittedById Int?
+  status       SubmissionStatus        @default(DRAFT)
+  reportingMonth Int?                  @db.TinyInt
+  reportingQuarter Int                 @default(1) @db.TinyInt
+  realizationNarrative String?         @db.Text
+  evaluation     String?               @db.Text
+  constraints    String?               @db.Text
+  followUp       String?               @db.Text
+  physicalRealization Decimal?         @db.Decimal(20, 6)
+  evidenceFileUrl String?              @db.VarChar(500)
+  revisionNote String?                 @db.Text
+  submittedAt  DateTime?
+  approvedAt   DateTime?
+  fiscalYear   FiscalYear              @relation(fields: [fiscalYearId], references: [id], onDelete: Cascade)
+  indicator    PerformanceIndicator    @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+  submittedBy  User?                   @relation("SubmittedBy", fields: [submittedById], references: [id])
+  values       QuarterlyPerformanceValue[]
+  reviews      SubmissionReview[]
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  @@unique([fiscalYearId, indicatorId, reportingQuarter])
+  @@map("performance_submissions")
+}
+
+model QuarterlyPerformanceValue {
+  id                      Int                   @id @default(autoincrement())
+  performanceSubmissionId Int
+  quarter                 Int                   @db.TinyInt
+  targetValue             Decimal?              @db.Decimal(20, 6)
+  realizationValue        Decimal?              @db.Decimal(20, 6)
+  evidenceFileUrl         String?               @db.VarChar(500)
+  evidenceDriveFileId     String?               @db.VarChar(255)
+  evidenceDriveViewUrl    String?               @db.VarChar(500)
+  evidenceFileName        String?               @db.VarChar(255)
+  evidenceMimeType        String?               @db.VarChar(150)
+  evidenceFileSize        Int?
+  evidenceUploadedAt      DateTime?
+  sourceSyncRunId         Int?
+  performanceSubmission   PerformanceSubmission @relation(fields: [performanceSubmissionId], references: [id], onDelete: Cascade)
+  sourceSyncRun           GoogleSyncRun?        @relation(fields: [sourceSyncRunId], references: [id], onDelete: SetNull)
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  @@unique([performanceSubmissionId, quarter])
+  @@map("quarterly_performance_values")
+}
+
+model SubmissionReview {
+  id                      Int                   @id @default(autoincrement())
+  performanceSubmissionId Int
+  reviewerUserId          Int
+  reviewStage             ReviewStage
+  decision                ReviewDecision
+  note                    String?               @db.Text
+  reviewedAt              DateTime              @default(now())
+  performanceSubmission   PerformanceSubmission @relation(fields: [performanceSubmissionId], references: [id], onDelete: Cascade)
+  reviewer                User                  @relation(fields: [reviewerUserId], references: [id])
+
+  @@map("submission_reviews")
+}
+
+model GoogleSheetSource {
+  id           Int                   @id @default(autoincrement())
+  fiscalYearId Int
+  indicatorId  Int
+  spreadsheetId String                @db.VarChar(191)
+  spreadsheetUrl String?              @db.VarChar(500)
+  worksheetName String                @db.VarChar(191)
+  isActive     Boolean                @default(true)
+  createdById  Int?
+  fiscalYear   FiscalYear             @relation(fields: [fiscalYearId], references: [id], onDelete: Cascade)
+  indicator    PerformanceIndicator   @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+  createdBy    User?                  @relation("SourceCreatedBy", fields: [createdById], references: [id])
+  syncRuns     GoogleSyncRun[]
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@unique([fiscalYearId, indicatorId])
+  @@map("google_sheet_sources")
+}
+
+model GoogleSyncRun {
+  id           Int                       @id @default(autoincrement())
+  sourceId     Int
+  triggerType  SyncTrigger
+  status       SyncStatus                 @default(RUNNING)
+  startedAt    DateTime                   @default(now())
+  finishedAt   DateTime?
+  rowsRead     Int                        @default(0)
+  rowsCreated  Int                        @default(0)
+  rowsUpdated  Int                        @default(0)
+  rowsSkipped  Int                        @default(0)
+  errorSummary String?                    @db.Text
+  dataHash     String?                    @db.VarChar(64)
+  source       GoogleSheetSource          @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  values       QuarterlyPerformanceValue[]
+
+  @@map("google_sync_runs")
+}
+
+model BudgetAllocation {
+  id                         Int        @id @default(autoincrement())
+  fiscalYearId               Int        @unique
+  initialCeilingAmount       Decimal?   @db.Decimal(20, 2)
+  latestRevisionCeilingAmount Decimal?  @db.Decimal(20, 2)
+  blockedAmount              Decimal?   @db.Decimal(20, 2)
+  rupiahMurniAmount          Decimal?   @db.Decimal(20, 2)
+  pnbpAmount                 Decimal?   @db.Decimal(20, 2)
+  fiscalYear                 FiscalYear @relation(fields: [fiscalYearId], references: [id], onDelete: Cascade)
+  realizations               BudgetRealization[]
+  createdAt                  DateTime   @default(now())
+  updatedAt                  DateTime   @updatedAt
+
+  @@map("budget_allocations")
+}
+
+model BudgetRealization {
+  id                 Int              @id @default(autoincrement())
+  budgetAllocationId Int
+  reportingMonth     Int              @db.TinyInt
+  financialTargetPct Decimal?         @db.Decimal(7, 4)
+  spendingActualAmount Decimal?       @db.Decimal(20, 2)
+  pnbpTargetAmount   Decimal?         @db.Decimal(20, 2)
+  pnbpActualAmount   Decimal?         @db.Decimal(20, 2)
+  budgetAllocation   BudgetAllocation @relation(fields: [budgetAllocationId], references: [id], onDelete: Cascade)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([budgetAllocationId, reportingMonth])
+  @@map("budget_realizations")
+}
+
+model ActivityLog {
+  id            Int      @id @default(autoincrement())
+  userId        Int?
+  module        String   @db.VarChar(100)
+  action        String   @db.VarChar(100)
+  description   String   @db.Text
+  referenceType String?  @db.VarChar(100)
+  referenceId   Int?
+  ipAddress     String?  @db.VarChar(45)
+  metadataJson  Json?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+
+  @@map("activity_logs")
+}
+
+model PerjanjianKinerja {
+  id                 Int                @id @default(autoincrement())
+  timelinePelaksanaan String            @map("timeline_pelaksanaan") @db.VarChar(255)
+  status             String             @default("DRAFT") @db.VarChar(50)
+  sasaran             SasaranKegiatan[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@map("perjanjian_kinerja")
+}
+
+model SasaranKegiatan {
+  id            Int                @id @default(autoincrement())
+  perjanjianId  Int              @map("perjanjian_id")
+  namaSasaran   String           @map("nama_sasaran") @db.Text
+  perjanjian    PerjanjianKinerja  @relation(fields: [perjanjianId], references: [id], onDelete: Cascade)
+  indikator     IndikatorKinerjaUtama[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([perjanjianId])
+  @@map("sasaran_kegiatan")
+}
+
+model IndikatorKinerjaUtama {
+  id          Int              @id @default(autoincrement())
+  sasaranId   Int              @map("sasaran_id")
+  namaIku     String           @map("nama_iku") @db.Text
+  satuan      String           @db.VarChar(100)
+  target      Decimal?         @db.Decimal(20, 6)
+  picId       Int?             @map("pic_id")
+  katimId     Int?             @map("katim_id")
+  sasaran     SasaranKegiatan  @relation(fields: [sasaranId], references: [id], onDelete: Cascade)
+  pic         User?            @relation("IkuPic", fields: [picId], references: [id], onDelete: SetNull)
+  katim       User?            @relation("IkuKatim", fields: [katimId], references: [id], onDelete: SetNull)
+  picAssignments IkuPicAssignment[]
+  actionPlan  ActionPlan?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([sasaranId])
+  @@index([picId])
+  @@index([katimId])
+  @@map("indikator_kinerja_utama")
+}
+
+model IkuPicAssignment {
+  id          Int                    @id @default(autoincrement())
+  indikatorId Int                    @map("indikator_id")
+  picUserId   Int                    @map("pic_user_id")
+  indikator   IndikatorKinerjaUtama  @relation(fields: [indikatorId], references: [id], onDelete: Cascade)
+  picUser     User                   @relation(fields: [picUserId], references: [id], onDelete: Cascade)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@unique([indikatorId, picUserId])
+  @@index([picUserId])
+  @@map("iku_pic_assignments")
+}
+
+model ActionPlan {
+  id          Int                    @id @default(autoincrement())
+  indikatorId Int                    @unique @map("indikator_id")
+  indikator   IndikatorKinerjaUtama  @relation(fields: [indikatorId], references: [id], onDelete: Cascade)
+  quarters   QuarterlyActionPlan[]
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
+
+  @@map("action_plans")
+}
+
+model QuarterlyActionPlan {
+  id           Int        @id @default(autoincrement())
+  actionPlanId Int        @map("action_plan_id")
+  quarter      Int        @db.TinyInt
+  target       Decimal?   @db.Decimal(20, 6)
+  activity     String?    @db.Text
+  actionPlan   ActionPlan @relation(fields: [actionPlanId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([actionPlanId, quarter])
+  @@map("quarterly_action_plans")
+}

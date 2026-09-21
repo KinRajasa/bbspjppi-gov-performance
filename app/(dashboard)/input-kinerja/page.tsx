@@ -1,62 +1,26 @@
-'use client';
-
 import Link from 'next/link';
 
-export default function PintuMasukInputKinerjaPage() {
+export default function InputKinerjaPage() {
   return (
-    <div className="animation-fade-in w-full pb-10 flex flex-col min-h-[90vh]">
-      
-      {/* HEADER */}
-      <header className="mb-10 border-b border-slate-200 pb-5 text-center md:text-left">
-        <h2 className="text-3xl font-bold text-slate-800">Pilih Jenis Pelaporan</h2>
-        <p className="text-sm text-slate-500 mt-2">
-          Silakan pilih jenis data kinerja yang ingin Anda laporkan pada periode ini.
-        </p>
+    <div className="animation-fade-in w-full pb-10">
+      <header className="mb-8 border-b border-slate-200 pb-5">
+        <h2 className="text-3xl font-bold text-slate-800">Input Kinerja</h2>
+        <p className="mt-2 text-sm text-slate-500">Pilih jenis pelaporan yang ingin Anda kerjakan.</p>
       </header>
-
-      {/* DUA KARTU PILIHAN BESAR */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto md:mx-0 w-full">
-        
-        {/* KARTU 1: REALISASI FISIK (Manual) */}
-        <Link 
-          href="/input-kinerja/fisik"
-          className="group bg-white rounded-2xl border-2 border-slate-200 p-8 flex flex-col items-center md:items-start text-center md:text-left hover:border-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-        >
-          <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 mb-6 transition-colors border border-slate-100">
-            <span className="material-symbols-outlined text-[32px]">edit_document</span>
-          </div>
-          <h3 className="text-xl font-bold text-slate-800 mb-2 group-hover:text-blue-700 transition-colors">
-            Realisasi Fisik (Rencana Aksi)
-          </h3>
-          <p className="text-sm text-slate-500 leading-relaxed">
-            Formulir manual untuk menginput capaian kuantitatif (persentase) dan evaluasi rencana kegiatan bulanan/triwulanan.
-          </p>
-          <div className="mt-8 flex items-center gap-2 text-sm font-bold text-slate-400 group-hover:text-blue-600 transition-colors">
-            Buka Formulir <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-          </div>
+      <div className="grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
+        <Link href="/input-kinerja/fisik" className="group rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:border-blue-400 hover:shadow-lg">
+          <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><span className="material-symbols-outlined text-[30px]">monitoring</span></div>
+          <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-700">Realisasi Fisik (Rencana Aksi)</h3>
+          <p className="mt-3 text-sm leading-relaxed text-slate-500">Laporkan realisasi kegiatan, evaluasi lapangan, dan capaian fisik bulanan atau triwulanan.</p>
+          <span className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-blue-600">Mulai pelaporan <span className="material-symbols-outlined text-[18px]">arrow_forward</span></span>
         </Link>
-
-        {/* KARTU 2: REALISASI PERJAKIN (Excel) */}
-        <Link 
-          href="/input-realisasi"
-          className="group bg-white rounded-2xl border-2 border-slate-200 p-8 flex flex-col items-center md:items-start text-center md:text-left hover:border-emerald-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-        >
-          <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 mb-6 transition-colors border border-slate-100">
-            <span className="material-symbols-outlined text-[32px]">upload_file</span>
-          </div>
-          <h3 className="text-xl font-bold text-slate-800 mb-2 group-hover:text-emerald-700 transition-colors">
-            Realisasi Perjakin Akhir
-          </h3>
-          <p className="text-sm text-slate-500 leading-relaxed">
-            Unggah dokumen Kertas Kerja (Excel) untuk menarik data capaian indikator Perjanjian Kinerja secara otomatis.
-          </p>
-          <div className="mt-8 flex items-center gap-2 text-sm font-bold text-slate-400 group-hover:text-emerald-600 transition-colors">
-            Mulai Unggah <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-          </div>
+        <Link href="/input-kinerja/perjakin" className="group rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:border-emerald-400 hover:shadow-lg">
+          <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><span className="material-symbols-outlined text-[30px]">upload_file</span></div>
+          <h3 className="text-xl font-bold text-slate-800 group-hover:text-emerald-700">Realisasi Perjakin Akhir</h3>
+          <p className="mt-3 text-sm leading-relaxed text-slate-500">Unggah Kertas Kerja Excel sebagai laporan realisasi Perjanjian Kinerja akhir tahun.</p>
+          <span className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-emerald-600">Unggah kertas kerja <span className="material-symbols-outlined text-[18px]">arrow_forward</span></span>
         </Link>
-
       </div>
-
     </div>
   );
 }
