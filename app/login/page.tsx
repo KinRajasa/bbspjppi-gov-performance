@@ -19,7 +19,7 @@ export default function LoginPage() {
       const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.message || 'Login gagal.');
-      const landing: Record<string, string> = { ADMIN: '/dashboard', KAPOKJA: '/validasi-kapokja', KATIM: '/validasi-katim', PIC: '/input-kinerja' };
+      const landing: Record<string, string> = { ADMIN: '/dashboard', KAPOKJA: '/validasi-kapokja', KATIM: '/validasi-katim', PIC: '/input-kinerja', PIMPINAN: '/dashboard' };
       router.push(landing[result.data?.role] ?? '/dashboard'); router.refresh();
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Login gagal.'); }
     finally { setLoading(false); }

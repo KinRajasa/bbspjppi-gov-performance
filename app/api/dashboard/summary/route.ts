@@ -51,7 +51,10 @@ export async function GET(request: NextRequest) {
           submissions: {
             where: { fiscalYearId },
             orderBy: { reportingQuarter: 'asc' },
-            include: { values: { orderBy: { quarter: 'asc' } } },
+            include: {
+              values: { orderBy: { quarter: 'asc' } },
+              submittedBy: { select: { name: true } },
+            },
           },
         },
       }),

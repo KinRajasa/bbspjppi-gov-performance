@@ -124,7 +124,16 @@ export function buildCanonicalRows(
       id: indicator?.id ?? -(definition.number),
       code: String(definition.number),
       indikator: definition.name,
-      pic: master?.pic ?? indicator?.assignments[0]?.picUser.name ?? '',
+      // Setelah lolos validasi Katim/Kapokja, tampilkan PIC yang benar-benar
+      // mengirim submission. Fallback ke assignment master untuk baris yang
+      // belum memiliki submission final.
+      pic:
+        indicator?.submissions.find((submission) =>
+          ['PUBLISHED', 'APPROVED', 'DISETUJUI'].includes(submission.status),
+        )?.submittedBy?.name ??
+        master?.pic ??
+        indicator?.assignments[0]?.picUser.name ??
+        '',
       satuan: indicator?.unit?.trim() || master?.satuan?.trim() || '',
       targetValue,
       realisasiValue,

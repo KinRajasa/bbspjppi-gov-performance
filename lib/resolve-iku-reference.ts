@@ -30,6 +30,18 @@ export function resolveIkuReference(
     if (byId) return byId;
   }
 
+  // Hasil import lama sering memakai kode sheet (mis. TJ 1, SK.1.1)
+  // sebagai kode performance_indicators. Cocokkan kode tersebut lebih dulu
+  // agar Sasaran Kegiatan selalu mengikuti indikator yang dipilih.
+  const normalizedCode = normalizeIndicatorName(indicator.code);
+  if (normalizedCode) {
+    const bySheetCode = rows.find((row) => {
+      const sheetCode = getSheetCodeForIkuId(row.id);
+      return sheetCode && normalizeIndicatorName(sheetCode) === normalizedCode;
+    });
+    if (bySheetCode) return bySheetCode;
+  }
+
   const normalizedName = normalizeIndicatorName(indicator.name);
   if (!normalizedName) return null;
 

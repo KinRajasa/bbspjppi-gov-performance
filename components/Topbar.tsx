@@ -9,14 +9,16 @@ type Profile = { name: string; role: AppRole };
 
 const roleLabel = (profile: Profile) => {
   if (profile.role === 'ADMIN') return 'Admin System';
+  if (profile.role === 'PIMPINAN') return `Pimpinan - ${profile.name}`;
   if (profile.role === 'KAPOKJA') return `Kapokja - ${profile.name}`;
   if (profile.role === 'KATIM') return `Katim - ${profile.name}`;
   return `PIC - ${profile.name}`;
 };
 
-const roleInitial = (role: AppRole) => ({ ADMIN: 'AD', KAPOKJA: 'KP', KATIM: 'KT', PIC: 'PC' })[role];
+const roleInitial = (role: AppRole) => ({ ADMIN: 'AD', KAPOKJA: 'KP', KATIM: 'KT', PIC: 'PC', PIMPINAN: 'PM' })[role];
 const roleStyle: Record<AppRole, { avatar: string; toast: string }> = {
   ADMIN: { avatar: 'bg-indigo-700 text-white', toast: 'border-indigo-200 bg-indigo-50 text-indigo-900' },
+  PIMPINAN: { avatar: 'bg-purple-700 text-white', toast: 'border-purple-200 bg-purple-50 text-purple-900' },
   KAPOKJA: { avatar: 'bg-emerald-600 text-white', toast: 'border-emerald-200 bg-emerald-50 text-emerald-900' },
   KATIM: { avatar: 'bg-blue-600 text-white', toast: 'border-blue-200 bg-blue-50 text-blue-900' },
   PIC: { avatar: 'bg-amber-500 text-white', toast: 'border-amber-200 bg-amber-50 text-amber-900' },

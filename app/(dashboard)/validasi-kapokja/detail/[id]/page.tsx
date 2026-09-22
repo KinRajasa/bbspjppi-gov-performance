@@ -205,7 +205,7 @@ export default function ValidasiKapokjaDetailPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="rounded-md bg-purple-100 px-2 py-0.5 text-[11px] font-bold text-purple-800">
-                Persetujuan Pimpinan (Tahap 2)
+                Persetujuan Pimpinan
               </span>
               {isApproved && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">

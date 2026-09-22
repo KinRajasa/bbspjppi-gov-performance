@@ -19,16 +19,16 @@ export async function GET(request: NextRequest) {
     const requestedQuarter = Number(request.nextUrl.searchParams.get('quarter') ?? 4);
     const quarter = Number.isInteger(requestedQuarter) ? Math.min(4, Math.max(1, requestedQuarter)) : 4;
     const fiscalYear = await prisma.fiscalYear.findUnique({ where: { year }, select: { id: true } });
-    const targetCumulative = quarter * 25;
+    const defaultTargetCumulative = quarter * 25;
     if (!fiscalYear) {
       return NextResponse.json({
         success: true,
         data: {
           year,
           quarter,
-          targetCumulative,
+          targetCumulative: defaultTargetCumulative,
           indicators: [],
-          summary: { avgRealisasi: 0, targetCumulative, onTrack: 0, delayed: 0, total: 0 },
+          summary: { avgRealisasi: 0, targetCumulative: defaultTargetCumulative, onTrack: 0, delayed: 0, total: 0 },
         },
       });
     }
@@ -58,11 +58,17 @@ export async function GET(request: NextRequest) {
           reportingQuarter: true,
           physicalRealization: true,
           indicator: { select: { name: true, unit: true } },
+          submittedBy: { select: { name: true } },
         },
       }),
     ]);
 
     const plansByIndicator = new Map(actionPlans.map((plan) => [plan.indikator.id, plan]));
+    // Submission memakai ID performance_indicators, sedangkan Rencana Aksi
+    // memakai ID indikator master IKU. Karena itu siapkan pencocokan nama agar
+    // target fisik yang sudah diatur (mis. 30% + 20% ...) tidak jatuh ke
+    // fallback standar 25%.
+    const plansByName = new Map(actionPlans.map((plan) => [normalizeIndicatorLabel(plan.indikator.namaIku), plan]));
     const submissionsByIndicator = new Map<number, typeof approvedSubmissions>();
     for (const submission of approvedSubmissions) {
       const values = submissionsByIndicator.get(submission.indicatorId) ?? [];
@@ -82,17 +88,19 @@ export async function GET(request: NextRequest) {
       );
       const indicatorId = matching?.[0] ?? -(definitionIndex + 1);
       const submissions = matching?.[1] ?? [];
-      const plan = matching ? plansByIndicator.get(indicatorId) : undefined;
+      const plan = matching
+        ? plansByIndicator.get(indicatorId) ?? plansByName.get(normalizeIndicatorLabel(definition.name))
+        : plansByName.get(normalizeIndicatorLabel(definition.name));
       const indicator = submissions[0]?.indicator;
       const hasData = submissions.length > 0;
       const targetKumulatif = plan && plan.quarters.length > 0
         ? plan.quarters.reduce((sum, item) => sum + Number(item.target ?? 0), 0)
-        : targetCumulative;
+        : defaultTargetCumulative;
       const realisasi = submissions.reduce((sum, item) => sum + Number(item.physicalRealization ?? 0), 0);
       return {
         id: indicatorId,
         name: definition.name,
-        pic: plan?.indikator.pic?.name ?? 'PIC',
+        pic: submissions.find((submission) => submission.submittedBy?.name)?.submittedBy?.name ?? plan?.indikator.pic?.name ?? 'PIC',
         satuan: plan?.indikator.satuan ?? indicator?.unit ?? '%',
         targetKumulatif: Number(targetKumulatif.toFixed(2)),
         realisasiKumulatif: Number(realisasi.toFixed(2)),
@@ -109,6 +117,10 @@ export async function GET(request: NextRequest) {
       indicatorsWithData.length > 0
         ? indicatorsWithData.reduce((sum, ind) => sum + ind.realisasiKumulatif, 0) / indicatorsWithData.length
         : 0;
+    const configuredIndicators = indicators.filter((ind) => ind.hasData || ind.targetKumulatif !== defaultTargetCumulative);
+    const targetCumulative = configuredIndicators.length > 0
+      ? configuredIndicators.reduce((sum, ind) => sum + ind.targetKumulatif, 0) / configuredIndicators.length
+      : defaultTargetCumulative;
 
     return NextResponse.json({
       success: true,

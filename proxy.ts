@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getRequestRole } from '@/lib/activity-log-auth';
+import { canAccessActivityLog, getRequestRole } from '@/lib/activity-log-auth';
 import { landingPage, normalizeRole, routeAllowed } from '@/lib/rbac';
 
 export function proxy(request: NextRequest) {
@@ -7,8 +7,8 @@ export function proxy(request: NextRequest) {
   const isActivityApi = pathname === '/api/activity-logs' || pathname.startsWith('/api/activity-logs/');
   const isActivityPage = pathname === '/log-aktivitas' || pathname.startsWith('/log-aktivitas/');
   if (pathname.startsWith('/api/')) {
-    if (isActivityApi && getRequestRole(request) !== 'ADMIN') {
-      return NextResponse.json({ success: false, message: 'Akses hanya untuk ADMIN.' }, { status: 403 });
+    if (isActivityApi && !canAccessActivityLog(request)) {
+      return NextResponse.json({ success: false, message: 'Akses hanya untuk ADMIN dan PIMPINAN.' }, { status: 403 });
     }
     return NextResponse.next();
   }
@@ -24,7 +24,7 @@ export function proxy(request: NextRequest) {
   if (pathname === '/input-kinerja/perjakin' || pathname.startsWith('/input-kinerja/perjakin/')) {
     return NextResponse.redirect(new URL('/input-realisasi', request.url));
   }
-  if (isActivityPage && role !== 'ADMIN') return NextResponse.redirect(new URL(landingPage[role], request.url));
+  if (isActivityPage && !canAccessActivityLog(request)) return NextResponse.redirect(new URL(landingPage[role], request.url));
   if (!routeAllowed(role, pathname)) return NextResponse.redirect(new URL(landingPage[role], request.url));
   return NextResponse.next();
 }

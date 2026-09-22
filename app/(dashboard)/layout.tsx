@@ -16,11 +16,22 @@ export default function DashboardLayout({
   const [role, setRole] = useState<AppRole | null>(null);
 
   useEffect(() => {
-    const role = document.cookie
+    const rawRole = document.cookie
       .split('; ')
       .find((item) => item.startsWith('userRole='))
       ?.split('=')[1];
-    setRole(normalizeRole(decodeURIComponent(role ?? '')));
+    const parsedRole = normalizeRole(decodeURIComponent(rawRole ?? ''));
+    if (parsedRole) {
+      setRole(parsedRole);
+    } else {
+      void fetch('/api/auth/session', { cache: 'no-store' })
+        .then((res) => res.json())
+        .then((data) => {
+          const sessionRole = normalizeRole(data.user?.role);
+          if (sessionRole) setRole(sessionRole);
+        })
+        .catch(() => undefined);
+    }
   }, []);
 
   const canAccess = (path: string) => role ? routeAllowed(role, path) : false;
@@ -151,7 +162,7 @@ export default function DashboardLayout({
               Riwayat Pengajuan
             </Link>}
 
-            {role === 'ADMIN' && (
+            {canAccess('/log-aktivitas') && (
               <Link
                 href="/log-aktivitas"
                 className={`pl-5 py-3 text-sm font-medium rounded-r transition-colors border-l-4 ${

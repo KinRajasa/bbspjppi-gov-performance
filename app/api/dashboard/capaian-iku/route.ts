@@ -28,7 +28,13 @@ export async function GET(request: NextRequest) {
       orderBy: { id: 'asc' },
       include: {
         assignments: { where: { fiscalYearId: fiscalYear.id }, include: { picUser: { select: { name: true } } } },
-        submissions: { where: { fiscalYearId: fiscalYear.id }, include: { values: { where: { quarter: quarterVal }, select: { quarter: true, targetValue: true, realizationValue: true, sourceSyncRunId: true } } } },
+        submissions: {
+          where: { fiscalYearId: fiscalYear.id },
+          include: {
+            submittedBy: { select: { name: true } },
+            values: { where: { quarter: quarterVal }, select: { quarter: true, targetValue: true, realizationValue: true, sourceSyncRunId: true } },
+          },
+        },
       },
     });
 

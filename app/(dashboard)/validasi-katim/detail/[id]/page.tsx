@@ -1,322 +1,83 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { getLaporanById } from '../../data';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { cleanIndicatorName } from '@/lib/clean-indicator-name';
+import { Building2, CheckCircle2, FileText, Paperclip, TrendingUp } from 'lucide-react';
+
+type Report = {
+  id: number;
+  status: string;
+  reportingQuarter: number | null;
+  reportingMonth?: number | null;
+  sasaranName?: string | null;
+  physicalRealization: string | null;
+  realizationNarrative: string | null;
+  evaluation: string | null;
+  constraints: string | null;
+  followUp: string | null;
+  revisionNote: string | null;
+  evidenceFileUrl: string | null;
+  indicator: { code: string; name: string; unit: string | null };
+  submittedBy: { name: string; email: string } | null;
+  fiscalYear: { year: number };
+  values: { quarter: number; targetValue: string | null; realizationValue: string | null; evidenceFileUrl: string | null; sourceSyncRunId: number | null }[];
+  reviews: { note: string | null; reviewedAt: string; decision: string }[];
+};
 
 export default function DetailValidasiPage() {
-  const params = useParams();
-  const id = Number(params.id);
-  const laporan = getLaporanById(id);
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const [report, setReport] = useState<Report | null>(null);
+  const [note, setNote] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const [catatan, setCatatan] = useState('');
-  const [errorCatatan, setErrorCatatan] = useState('');
+  useEffect(() => {
+    const id = Number(params.id);
+    if (!Number.isInteger(id)) { setError('ID laporan tidak valid.'); setLoading(false); return; }
+    fetch(`/api/validasi-data/${id}`, { cache: 'no-store' })
+      .then(async (res) => { const body = await res.json(); if (!res.ok || !body.success) throw new Error(body.message || 'Laporan tidak ditemukan.'); return body.data; })
+      .then(setReport)
+      .catch((e) => setError(e instanceof Error ? e.message : 'Laporan tidak ditemukan.'))
+      .finally(() => setLoading(false));
+  }, [params.id]);
 
-  const handleTolak = () => {
-    if (catatan.trim() === '') {
-      setErrorCatatan('Catatan wajib diisi saat menolak data, agar PIC tahu apa yang perlu diperbaiki.');
-      return;
-    }
-    setErrorCatatan('');
-    // TODO: panggil API tolak-validasi dengan payload { id, catatan }
+  const review = async (action: 'approve' | 'reject') => {
+    if (action === 'reject' && !note.trim()) { setError('Catatan wajib diisi saat meminta revisi.'); return; }
+    setSaving(true); setError('');
+    try {
+      const res = await fetch(`/api/validasi-data/${params.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, note }) });
+      const body = await res.json();
+      if (!res.ok || !body.success) throw new Error(body.message || 'Validasi gagal.');
+      router.push('/validasi-katim'); router.refresh();
+    } catch (e) { setError(e instanceof Error ? e.message : 'Validasi gagal.'); }
+    finally { setSaving(false); }
   };
 
-  const handleSetujui = () => {
-    setErrorCatatan('');
-    // TODO: panggil API setujui-validasi dengan payload { id, catatan }
-  };
+  if (loading) return <div className="p-10 text-center text-slate-500">Memuat laporan...</div>;
+  if (error || !report) return <div className="p-10"><Link href="/validasi-katim" className="text-blue-600 hover:underline">← Kembali</Link><p className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-6 text-rose-700">{error || 'Laporan dengan ID tersebut tidak ditemukan.'}</p></div>;
 
-  // Kalau id di URL tidak cocok dengan laporan manapun, tampilkan pesan yang jelas
-  // alih-alih halaman kosong atau data yang salah.
-  if (!laporan) {
-    return (
-      <div className="animation-fade-in w-full pb-10">
-        <Link href="/validasi-data" className="inline-flex items-center gap-2 text-blue-600 font-medium mb-6 hover:underline">
-          <span className="material-symbols-outlined">arrow_back</span> Kembali ke Antrean Validasi
-        </Link>
-        <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-          <p className="text-slate-600 font-medium">Laporan dengan ID tersebut tidak ditemukan.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="animation-fade-in w-full pb-10">
-      
-      {/* HEADER WITH BACK BUTTON */}
-      <header className="mb-8 flex items-center justify-between border-b border-slate-200 pb-5">
-        <div className="flex items-center gap-4">
-          <Link 
-            href="/validasi-data" 
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-600 transition"
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-          </Link>
-          <div>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">BBSPJPPI Gov Performance System</p>
-            <h2 className="text-2xl font-bold text-slate-800">Review Capaian Kinerja ({laporan.periode.split(' (')[0]})</h2>
-          </div>
-        </div>
-        
-        {/* Profile Info (Katim/Reviewer) */}
-        <div className="hidden md:flex items-center gap-3">
-          <div className="flex flex-col text-right">
-            <span className="font-bold text-slate-800 text-sm leading-tight">Bapak Ahmad</span>
-            <span className="text-xs text-slate-500">Katim / Reviewer</span>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-[#0f172a] text-white flex items-center justify-center font-bold text-sm">
-            BA
-          </div>
-        </div>
-      </header>
-
-      {/* Banner Catatan Revisi -- HANYA muncul kalau laporan ini memang pernah ditolak sebelumnya */}
-      {laporan.catatanRevisi && (
-        <div className="bg-rose-50/80 border border-rose-200 rounded-xl p-5 mb-6 flex gap-4 items-start shadow-sm">
-          <div className="bg-rose-100 p-2.5 rounded-full flex-shrink-0 mt-0.5">
-            <span className="material-symbols-outlined text-rose-600 text-[22px]">assignment_return</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-rose-800 text-sm">Catatan Revisi Sebelumnya ({laporan.catatanRevisi.tanggal})</h4>
-            <p className="text-rose-700 text-sm mt-1.5 leading-relaxed italic">
-              "{laporan.catatanRevisi.isi}"
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* MAIN CONTENT GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* KOLOM KIRI */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* KARTU 1: Info Indikator Utama */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8">
-            <div className={`inline-block text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4 ${
-              laporan.statusType === 'danger' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
-            }`}>
-              {laporan.statusType === 'danger' ? 'Revisi Ulang Diperlukan' : 'Menunggu Validasi Anda'}
-            </div>
-            
-            <p className="text-sm font-bold text-blue-600 mb-1">
-              Sasaran: {laporan.sasaran}
-            </p>
-            <h3 className="text-3xl font-bold text-slate-800 leading-snug mb-4">
-              {laporan.kodeIndikator} - {laporan.namaIndikator}
-            </h3>
-            
-            <div className="flex flex-wrap items-center gap-6 text-sm text-slate-600 font-medium mb-8">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px]">person</span>
-                {laporan.pic} ({laporan.picRole})
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-                Periode: {laporan.periode}
-              </div>
-            </div>
-
-            {/* Kotak Perbandingan Angka */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 mb-1">Target</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-slate-800">{laporan.target}</span>
-                  <span className="text-sm font-medium text-slate-500">{laporan.satuanTarget}</span>
-                </div>
-              </div>
-              <div className="text-right flex flex-col items-end">
-                <p className="text-xs font-bold text-slate-500 mb-1">Realisasi S.d {laporan.periode.split('(Apr-Jun')[0].includes('II') ? 'Juni' : 'Periode'}</p>
-                <div className="flex items-center gap-4">
-                  <span className="text-4xl font-black text-blue-600">{laporan.realisasi}</span>
-                  <div className={`text-xs font-bold px-2.5 py-1.5 rounded flex items-center gap-1.5 border ${
-                    laporan.statusRealisasi.toLowerCase().includes('belum')
-                      ? 'bg-rose-50 border-rose-200 text-rose-700'
-                      : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                  }`}>
-                    <span className="material-symbols-outlined text-[16px]">
-                      {laporan.statusRealisasi.toLowerCase().includes('belum') ? 'trending_down' : 'trending_up'}
-                    </span>
-                    {laporan.statusRealisasi}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* KARTU 2: Data Kualitatif (Breakdown per Bulan) */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8">
-            <div className="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
-              <span className="material-symbols-outlined text-slate-800 text-[22px]">description</span>
-              <h3 className="font-bold text-slate-800 text-lg">Data Kualitatif ({laporan.periode.split(' (')[0]})</h3>
-            </div>
-
-            <div className="space-y-8">
-              
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-4">Rincian Realisasi Bulanan</h4>
-                <div className="space-y-3">
-                  {laporan.rincianBulanan.map((bulan) => (
-                    <div key={bulan.label} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row gap-4">
-                      <div className="md:w-1/4 font-bold text-slate-700 text-sm flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500"></div> {bulan.label}
-                      </div>
-                      <div className="md:w-3/4 text-sm text-slate-600 leading-relaxed">
-                        {bulan.deskripsi}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-4">Evaluasi Keseluruhan ({laporan.periode.split(' (')[0]})</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-rose-50 border-l-4 border-rose-500 rounded-r-xl p-5">
-                    <div className="flex items-center gap-1.5 text-rose-600 font-bold text-sm mb-2">
-                      <span className="material-symbols-outlined text-[18px]">warning</span> Kendala
-                    </div>
-                    <ul className="text-sm text-rose-700 leading-relaxed list-disc pl-4 space-y-1">
-                      {laporan.kendala.map((k, i) => <li key={i}>{k}</li>)}
-                    </ul>
-                  </div>
-                  <div className="bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl p-5">
-                    <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm mb-2">
-                      <span className="material-symbols-outlined text-[18px]">check_circle</span> Tindak Lanjut
-                    </div>
-                    <p className="text-sm text-emerald-700 leading-relaxed">
-                      {laporan.tindakLanjut}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-        {/* KOLOM KANAN */}
-        <div className="space-y-6">
-          
-          {/* KARTU 3: Capaian Fisik */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="material-symbols-outlined text-slate-800 text-[22px]">data_usage</span>
-              <h3 className="font-bold text-slate-800 text-lg">Capaian Fisik</h3>
-            </div>
-            
-            <div className="flex justify-between items-end mb-3">
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Realisasi</p>
-                <p className="text-3xl font-black text-slate-800">{laporan.capaianFisik.realisasi}%</p>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Target Triwulan</p>
-                <p className="text-xl font-bold text-slate-700">{laporan.capaianFisik.target}%</p>
-              </div>
-            </div>
-            
-            <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-6">
-              <div
-                className={`h-full rounded-full ${laporan.capaianFisik.realisasi >= laporan.capaianFisik.target ? 'bg-emerald-500' : 'bg-rose-500'}`}
-                style={{ width: `${Math.min(laporan.capaianFisik.realisasi, 100)}%` }}
-              ></div>
-            </div>
-
-            <div className={`text-xs font-bold px-3 py-2 rounded flex items-center justify-center gap-1.5 border ${
-              laporan.capaianFisik.realisasi >= laporan.capaianFisik.target
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-rose-50 text-rose-700 border-rose-200'
-            }`}>
-              <span className="material-symbols-outlined text-[16px]">
-                {laporan.capaianFisik.realisasi >= laporan.capaianFisik.target ? 'check_circle' : 'error'}
-              </span>
-              {laporan.capaianFisik.statusLabel}
-            </div>
-          </div>
-
-          {/* KARTU 4: Dokumen Bukti Dukung */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="material-symbols-outlined text-slate-800 text-[22px]">snippet_folder</span>
-              <h3 className="font-bold text-slate-800 text-lg">Dokumen Bukti Dukung</h3>
-            </div>
-
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between hover:border-blue-300 transition cursor-pointer group">
-              <div className="flex items-center gap-3">
-                <div className="text-emerald-500 bg-emerald-100 w-10 h-10 flex items-center justify-center rounded-lg">
-                  <span className="material-symbols-outlined">description</span>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition">{laporan.dokumen.nama}</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">{laporan.dokumen.ukuran} • Diunggah {laporan.dokumen.tanggalUpload}</p>
-                </div>
-              </div>
-              <button className="text-slate-400 group-hover:text-blue-600 transition">
-                <span className="material-symbols-outlined">download</span>
-              </button>
-            </div>
-          </div>
-
-          {/* KARTU 5: Form Validasi Data */}
-          <div className="bg-white rounded-2xl border-2 border-blue-500 shadow-md p-6 lg:p-8 relative overflow-hidden">
-            <div className="absolute inset-0 bg-blue-50/30"></div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-6">
-                <span className="material-symbols-outlined text-slate-800 text-[22px]">fact_check</span>
-                <h3 className="font-bold text-slate-800 text-lg">Validasi Data</h3>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-xs font-bold text-slate-600 mb-2">
-                  Catatan Review <span className="font-normal text-slate-400">(Wajib diisi jika menolak)</span>
-                </label>
-                <textarea 
-                  rows={4}
-                  value={catatan}
-                  onChange={(e) => {
-                    setCatatan(e.target.value);
-                    if (errorCatatan) setErrorCatatan('');
-                  }}
-                  placeholder="Masukkan instruksi revisi atau catatan persetujuan di sini..."
-                  className={`w-full bg-white border rounded-xl p-4 text-sm text-slate-700 outline-none focus:ring-2 transition resize-none ${
-                    errorCatatan
-                      ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-100'
-                      : 'border-slate-300 focus:border-blue-500 focus:ring-blue-100'
-                  }`}
-                />
-                {errorCatatan && (
-                  <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-rose-600">
-                    <span className="material-symbols-outlined text-[16px]">error</span>
-                    {errorCatatan}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={handleTolak}
-                  className="flex-1 py-3 border border-rose-500 text-rose-600 rounded-xl font-bold text-sm hover:bg-rose-50 transition flex items-center justify-center gap-1"
-                >
-                  <span className="material-symbols-outlined text-[18px]">close</span> Tolak & Revisi
-                </button>
-                <button
-                  onClick={handleSetujui}
-                  className="flex-1 py-3 bg-[#0f172a] text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition shadow-sm flex items-center justify-center gap-1"
-                >
-                  <span className="material-symbols-outlined text-[18px]">check</span> Setujui Data
-                </button>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
+  const quarter = report.reportingQuarter ?? 1;
+  const quarterLabel = ['I', 'II', 'III', 'IV'][quarter - 1] ?? String(quarter);
+  const quarterValue = report.values?.find((value) => value.quarter === quarter);
+  return <div className="animation-fade-in w-full pb-10">
+    <header className="mb-8 flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 md:flex-row md:items-center"><div className="flex items-center gap-4"><Link href="/validasi-katim" className="rounded-full p-2 text-slate-600 hover:bg-slate-100">←</Link><div><span className="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-700">Persetujuan Katim</span><h1 className="mt-2 text-2xl font-bold text-slate-800">Tinjauan Laporan Kinerja</h1><p className="mt-1 text-sm text-slate-500">{cleanIndicatorName(report.indicator.name)}</p></div></div><span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">{report.status}</span></header>
+    {report.revisionNote && <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"><b>Catatan revisi:</b> {report.revisionNote}</div>}
+    <div className="grid grid-cols-12 gap-6">
+      <section className="col-span-12 space-y-5 lg:col-span-8">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"><div className="grid gap-4 md:grid-cols-3"><Info label="PIC Penginput" value={report.submittedBy?.name ?? 'Tidak diketahui'} sub={report.submittedBy?.email}/><Info label="Periode Pelaporan" value={`Triwulan ${quarterLabel} (TA ${report.fiscalYear.year})`} sub={`Bulan ke-${report.reportingMonth ?? '-'}`} /><Info label="Sasaran Kegiatan" value={report.sasaranName || 'Sasaran Kegiatan'} /></div></div>
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/30 p-5"><h2 className="flex items-center text-base font-bold text-emerald-900"><CheckCircle2 className="mr-2 h-5 w-5 text-emerald-600"/>Verifikasi Tahap 1: Rekomendasi Ketua Tim (Katim)</h2>{report.reviews?.length ? <div className="mt-3 rounded-xl border border-emerald-100 bg-white/80 p-4"><div className="flex justify-between text-xs font-medium text-slate-500"><span>Ditinjau oleh: Ketua Tim</span><span>{new Date(report.reviews[0].reviewedAt).toLocaleString('id-ID')}</span></div><p className="mt-2 text-xs font-bold text-slate-700">Keputusan: <span className={report.reviews[0].decision === 'APPROVED' ? 'text-emerald-700' : 'text-rose-700'}>{report.reviews[0].decision === 'APPROVED' ? 'Disetujui di Tahap 1' : 'Perlu Revisi'}</span></p><p className="mt-1 whitespace-pre-wrap text-xs text-slate-600">{report.reviews[0].note || 'Tidak ada catatan.'}</p></div> : <p className="mt-3 text-xs italic text-slate-500">Dalam proses peninjauan Katim.</p>}</div>
+        <div className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"><h2 className="flex items-center gap-2 text-lg font-bold text-slate-800"><FileText className="h-5 w-5 text-blue-600"/>Data Kualitatif Kegiatan</h2><ReadOnlyField label="Realisasi Kegiatan" value={report.realizationNarrative}/><ReadOnlyField label="Evaluasi Pelaksanaan" value={report.evaluation}/><div className="grid grid-cols-1 gap-4 md:grid-cols-2"><div className="rounded-r-lg border-l-4 border-red-500 bg-rose-50/70 p-4"><p className="mb-2 text-xs font-bold tracking-wider text-red-700">KENDALA YANG DIHADAPI</p><p className="whitespace-pre-wrap text-sm leading-relaxed text-red-800">{report.constraints || 'Tidak ada kendala.'}</p></div><div className="rounded-r-lg border-l-4 border-blue-500 bg-blue-50/70 p-4"><p className="mb-2 text-xs font-bold tracking-wider text-blue-700">RENCANA TINDAK LANJUT</p><p className="whitespace-pre-wrap text-sm leading-relaxed text-blue-800">{report.followUp || 'Tidak ada tindak lanjut khusus.'}</p></div></div></div>
+        {report.reviews?.length > 0 && <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="mb-4 font-bold text-slate-800">Riwayat Validasi & Review</h2>{report.reviews.map((review, index) => <div key={index} className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm"><b>{review.decision === 'APPROVED' ? 'Disetujui' : 'Perlu Revisi'}</b><p className="mt-1 text-slate-600">{review.note || '-'}</p></div>)}</div>}
+      </section>
+      <aside className="col-span-12 space-y-5 lg:col-span-4"><section className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"><h2 className="flex items-center gap-2 font-bold text-slate-800"><Building2 className="h-5 w-5 text-blue-600"/>Bagian 1: Data Aktual IKU</h2><p className="inline-block w-full rounded-lg bg-blue-50/70 px-3 py-1.5 text-xs font-medium text-blue-600">Ditarik dari Excel / Google Sheets (Read-Only)</p><div className="rounded-lg bg-slate-50 p-4 text-center"><p className="text-xs font-bold uppercase text-slate-500">Target Triwulan {quarterLabel}</p><p className="text-3xl font-black text-slate-800">{quarterValue?.targetValue ?? 'Belum tersedia'}</p><p className="text-xs text-slate-500">{report.indicator.unit ?? '-'}</p></div><div className="rounded-lg bg-emerald-50 p-4 text-center"><p className="text-xs font-bold uppercase text-emerald-700">Realisasi Riil Triwulan {quarterLabel}</p><p className="text-3xl font-black text-emerald-600">{quarterValue?.realizationValue ?? 'Belum tersedia'}</p><p className="text-xs text-emerald-700">{report.indicator.unit ?? '-'}</p></div></section><section className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"><h2 className="flex items-center gap-2 font-bold text-slate-800"><TrendingUp className="h-5 w-5 text-blue-600"/>Bagian 2: Capaian Fisik</h2><p className="inline-block w-full rounded-lg bg-blue-50/70 px-3 py-1.5 text-xs font-medium text-blue-600">Diinput manual oleh PIC (Operasional)</p><div className="rounded-lg bg-indigo-50 p-5 text-center"><p className="text-xs font-bold uppercase text-indigo-700">Realisasi Fisik Triwulan {quarterLabel}</p><p className="mt-1 text-4xl font-black text-indigo-600">{report.physicalRealization ?? '-'}%</p><p className="mt-2 text-[11px] text-indigo-700">Satuan mutlak Persen (%). Target tahunan selalu 100% dibagi 4 Triwulan.</p></div></section><section className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm"><h2 className="flex items-center gap-2 font-bold text-slate-800"><Paperclip className="h-5 w-5 text-slate-600"/>Bagian 3: Bukti Dukung</h2>{report.evidenceFileUrl ? <a href={report.evidenceFileUrl} target="_blank" rel="noreferrer" className="block rounded-lg bg-blue-50 p-3 text-sm font-semibold text-blue-700 hover:bg-blue-100">Buka Dokumen Bukti Dukung ↗</a> : <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">Belum ada berkas atau tautan bukti dukung yang dilampirkan.</p>}</section><section className="space-y-4 rounded-2xl border-2 border-blue-500 bg-white p-5 shadow-sm"><h2 className="mb-1 font-bold text-slate-800">Keputusan Katim</h2><textarea value={note} onChange={(e) => setNote(e.target.value)} rows={5} placeholder="Catatan revisi (wajib saat menolak)" className="w-full rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-blue-500" />{error && <p className="mt-2 text-xs text-rose-600">{error}</p>}<div className="grid grid-cols-2 gap-2"><button disabled={saving} onClick={() => review('reject')} className="rounded-lg border-2 border-rose-500 px-3 py-3 text-sm font-bold text-rose-600 disabled:opacity-50">Tolak / Minta Revisi</button><button disabled={saving} onClick={() => review('approve')} className="rounded-lg bg-emerald-600 px-3 py-3 text-sm font-bold text-white disabled:opacity-50">Setujui / Teruskan</button></div></section></aside>
     </div>
-  );
+  </div>;
 }
+
+function Field({ label, value }: { label: string; value: string | null }) { return <div><p className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p><p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{value || '-'}</p></div>; }
+function ReadOnlyField({ label, value }: { label: string; value: string | null }) { return <div><p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p><div className="flex min-h-[48px] items-center rounded-xl border border-slate-100 bg-slate-50/80 p-3.5 text-sm text-slate-700"><span className="whitespace-pre-wrap">{value || '-'}</span></div></div>; }
+function Info({ label, value, sub }: { label: string; value: string; sub?: string }) { return <div><p className="text-xs font-bold uppercase text-slate-500">{label}</p><p className="mt-1 font-semibold text-slate-800">{value}</p>{sub && <p className="text-xs text-slate-400">{sub}</p>}</div>; }

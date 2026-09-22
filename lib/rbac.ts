@@ -1,4 +1,4 @@
-export const APP_ROLES = ['ADMIN', 'KAPOKJA', 'KATIM', 'PIC'] as const;
+export const APP_ROLES = ['ADMIN', 'KAPOKJA', 'KATIM', 'PIC', 'PIMPINAN'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 export const landingPage: Record<AppRole, string> = {
@@ -6,6 +6,7 @@ export const landingPage: Record<AppRole, string> = {
   KAPOKJA: '/validasi-kapokja',
   KATIM: '/validasi-katim',
   PIC: '/input-kinerja',
+  PIMPINAN: '/dashboard',
 };
 
 const common = ['/', '/dashboard'];
@@ -14,8 +15,9 @@ const masterIku = '/perjanjian-kinerja/master-iku';
 const kapokja = [...common, '/validasi-kapokja', '/perjanjian-kinerja', masterIku, '/perjanjian-kinerja/rencana-aksi'];
 const katim = [...common, '/validasi-katim', '/riwayat-pengajuan', '/perjanjian-kinerja', masterIku];
 const pic = [...common, '/input-kinerja', '/input-realisasi', '/riwayat-pengajuan'];
+const pimpinan = [...common, '/log-aktivitas'];
 
-export const allowedRoutes: Record<AppRole, string[]> = { ADMIN: admin, KAPOKJA: kapokja, KATIM: katim, PIC: pic };
+export const allowedRoutes: Record<AppRole, string[]> = { ADMIN: admin, KAPOKJA: kapokja, KATIM: katim, PIC: pic, PIMPINAN: pimpinan };
 
 export function normalizeRole(value: string | undefined | null): AppRole | null {
   const role = String(value ?? '').trim().toUpperCase();

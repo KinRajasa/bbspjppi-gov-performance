@@ -8,6 +8,7 @@ const hash = (password) => { const salt = randomBytes(16).toString('hex'); retur
 
 const users = [
   ['Admin System', 'admin@bbspjppi.go.id', 'ADMIN'],
+  ['Kepala BBSPJPPI', 'pimpinan@bbspjppi.go.id', 'PIMPINAN'],
   ['Dyah Af', 'dyah.af@bbspjppi.go.id', 'KAPOKJA'],
   ['Dyah Ahsina', 'dyah.ahsina@bbspjppi.go.id', 'KATIM'],
   ['Aditya Wicaksono', 'aditya.wicaksono@bbspjppi.go.id', 'KATIM'],

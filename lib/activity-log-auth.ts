@@ -12,3 +12,8 @@ export function getRequestRole(request: NextRequest): string {
 export function isAdminRequest(request: NextRequest): boolean {
   return getRequestRole(request) === 'ADMIN';
 }
+
+export function canAccessActivityLog(request: NextRequest): boolean {
+  const role = getRequestRole(request);
+  return role === 'ADMIN' || role === 'PIMPINAN';
+}

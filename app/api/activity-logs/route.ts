@@ -1,7 +1,6 @@
 import { RoleName } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { isAdminRequest } from '@/lib/activity-log-auth';
 import { readSessionToken } from '@/lib/auth';
 
 export const runtime = 'nodejs';
@@ -18,8 +17,8 @@ function dateAtEndOfDay(value: string | null) {
 
 export async function GET(request: NextRequest) {
   const session = readSessionToken(request.cookies.get('session')?.value);
-  if (!isAdminRequest(request) || session?.role !== 'ADMIN') {
-    return NextResponse.json({ success: false, message: 'Akses hanya untuk ADMIN.' }, { status: 403 });
+  if (!['ADMIN', 'PIMPINAN'].includes(session?.role ?? '')) {
+    return NextResponse.json({ success: false, message: 'Akses hanya untuk ADMIN dan PIMPINAN.' }, { status: 403 });
   }
   try {
     const params = request.nextUrl.searchParams;

@@ -25,6 +25,7 @@ export type SubmissionLike = {
   submittedAt: Date | null;
   physicalRealization: NumericLike;
   values: QuarterValueLike[];
+  submittedBy?: { name: string } | null;
 };
 
 export type QuarterSelection = {
